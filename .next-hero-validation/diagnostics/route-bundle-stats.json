@@ -1,0 +1,41 @@
+[
+  {
+    "route": "/[lang]",
+    "firstLoadUncompressedJsBytes": 654763,
+    "firstLoadChunkPaths": [
+      ".next-hero-validation\\static\\chunks\\0umf92h1sb77c.js",
+      ".next-hero-validation\\static\\chunks\\0r_v4tdokxclk.js",
+      ".next-hero-validation\\static\\chunks\\13ul7eztr_8jv.js",
+      ".next-hero-validation\\static\\chunks\\0e_uoml_xzmkx.js",
+      ".next-hero-validation\\static\\chunks\\31qp8jfkw0x2h.js",
+      ".next-hero-validation\\static\\chunks\\1tty6l8tgntgq.js",
+      ".next-hero-validation\\static\\chunks\\2gvu8dyrhibpa.js",
+      ".next-hero-validation\\static\\chunks\\turbopack-2c3mg3r-05n1w.js"
+    ]
+  },
+  {
+    "route": "/[lang]/projects/[slug]",
+    "firstLoadUncompressedJsBytes": 637562,
+    "firstLoadChunkPaths": [
+      ".next-hero-validation\\static\\chunks\\0umf92h1sb77c.js",
+      ".next-hero-validation\\static\\chunks\\0r_v4tdokxclk.js",
+      ".next-hero-validation\\static\\chunks\\13ul7eztr_8jv.js",
+      ".next-hero-validation\\static\\chunks\\0md-y68sak41f.js",
+      ".next-hero-validation\\static\\chunks\\31qp8jfkw0x2h.js",
+      ".next-hero-validation\\static\\chunks\\1tty6l8tgntgq.js",
+      ".next-hero-validation\\static\\chunks\\2gvu8dyrhibpa.js",
+      ".next-hero-validation\\static\\chunks\\turbopack-2c3mg3r-05n1w.js"
+    ]
+  },
+  {
+    "route": "/_not-found",
+    "firstLoadUncompressedJsBytes": 457215,
+    "firstLoadChunkPaths": [
+      ".next-hero-validation\\static\\chunks\\0umf92h1sb77c.js",
+      ".next-hero-validation\\static\\chunks\\31qp8jfkw0x2h.js",
+      ".next-hero-validation\\static\\chunks\\1tty6l8tgntgq.js",
+      ".next-hero-validation\\static\\chunks\\2gvu8dyrhibpa.js",
+      ".next-hero-validation\\static\\chunks\\turbopack-2c3mg3r-05n1w.js"
+    ]
+  }
+]

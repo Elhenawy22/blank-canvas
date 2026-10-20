@@ -1,0 +1,9 @@
+{
+  "/[lang]/opengraph-image/[__metadata_id__]/route": "/[lang]/opengraph-image/[__metadata_id__]",
+  "/[lang]/page": "/[lang]",
+  "/[lang]/projects/[slug]/page": "/[lang]/projects/[slug]",
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/robots.txt/route": "/robots.txt",
+  "/sitemap.xml/route": "/sitemap.xml"
+}

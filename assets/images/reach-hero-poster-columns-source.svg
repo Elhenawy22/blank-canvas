@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" fill="none">
+  <defs>
+    <linearGradient id="backdrop" x1="0" y1="0" x2="1920" y2="1080" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#080A24"/>
+      <stop offset=".58" stop-color="#101037"/>
+      <stop offset="1" stop-color="#26265F"/>
+    </linearGradient>
+    <radialGradient id="halo" cx="0" cy="0" r="1" gradientTransform="matrix(620 290 -300 640 1430 420)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6868C8" stop-opacity=".8"/>
+      <stop offset="1" stop-color="#4545B5" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="glass" x1="1050" y1="80" x2="1690" y2="930" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF" stop-opacity=".04"/>
+      <stop offset=".48" stop-color="#C6C8E8" stop-opacity=".2"/>
+      <stop offset=".51" stop-color="#FFF" stop-opacity=".72"/>
+      <stop offset=".54" stop-color="#4545B5" stop-opacity=".28"/>
+      <stop offset="1" stop-color="#080A24" stop-opacity=".08"/>
+    </linearGradient>
+    <linearGradient id="edge" x1="1480" y1="150" x2="1180" y2="930" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF" stop-opacity="0"/>
+      <stop offset=".48" stop-color="#FFF"/>
+      <stop offset="1" stop-color="#C6C8E8" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="1395" y1="304" x2="1657" y2="705" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFDB00" stop-opacity="0"/>
+      <stop offset=".47" stop-color="#FFDB00"/>
+      <stop offset="1" stop-color="#FFDB00" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="blur" x="650" y="-140" width="1420" height="1360" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse">
+      <feGaussianBlur stdDeviation="90"/>
+    </filter>
+  </defs>
+  <path fill="url(#backdrop)" d="M0 0h1920v1080H0z"/>
+  <path fill="url(#halo)" d="M0 0h1920v1080H0z"/>
+  <g opacity=".32" stroke="#C6C8E8">
+    <path d="m1000 1080 268-1080M1250 1080l212-1080M1500 1080l156-1080M1750 1080l98-1080"/>
+  </g>
+  <g filter="url(#blur)" opacity=".25">
+    <path fill="#4545B5" d="m1150 130 220-100 340 890-220 100z"/>
+  </g>
+  <path fill="url(#glass)" d="m1185 0 328 0-255 1080h-340z"/>
+  <path fill="url(#glass)" d="m1550 0 240 0-80 1080h-290z" opacity=".72"/>
+  <path stroke="url(#edge)" stroke-width="5" d="m1513 0-255 1080"/>
+  <path stroke="url(#edge)" stroke-width="2" d="m1790 0-80 1080"/>
+  <path stroke="url(#accent)" stroke-width="8" d="m1605 180-175 336 290-75-202 456"/>
+  <path stroke="#FFDB00" stroke-opacity=".36" d="M1050 915h165"/>
+  <circle cx="1215" cy="915" r="4" fill="#FFDB00"/>
+</svg>
