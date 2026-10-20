@@ -126,42 +126,6 @@ export const projects: Project[] = [
     className: "project-card--portrait",
     client: "Awlad Madkour",
   },
-  {
-    slug: "desert-notes",
-    image: "/images/concept-desert.svg",
-    secondaryImage: "/images/concept-color.svg",
-    gallery: [],
-    categoryId: "branding",
-    kind: "concept",
-    className: "project-card--wide",
-  },
-  {
-    slug: "skin-simply",
-    image: "/images/concept-skin.svg",
-    secondaryImage: "/images/concept-desert.svg",
-    gallery: [],
-    categoryId: "photo",
-    kind: "concept",
-    className: "",
-  },
-  {
-    slug: "color-in-motion",
-    image: "/images/concept-color.svg",
-    secondaryImage: "/images/concept-digital.svg",
-    gallery: [],
-    categoryId: "social",
-    kind: "concept",
-    className: "",
-  },
-  {
-    slug: "fresh-perspective",
-    image: "/images/concept-digital.svg",
-    secondaryImage: "/images/concept-skin.svg",
-    gallery: [],
-    categoryId: "dev",
-    kind: "concept",
-    className: "",
-  },
 ];
 
 export const categoryOrder: CategoryId[] = ["all", ...categoryIds];
