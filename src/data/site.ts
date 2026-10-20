@@ -34,41 +34,6 @@ export const categories = [
   "Videography",
 ];
 
-export const projects = [
-  {
-    title: "Desert Notes",
-    category: "Branding",
-    type: "Concept project",
-    image: "/images/portfolio-perfume.jpg",
-    alt: "Black fragrance bottle with gold accents surrounded by vivid red flowers on a black background",
-    className: "project-card--wide",
-  },
-  {
-    title: "Skin, simply",
-    category: "Photography",
-    type: "Concept project",
-    image: "/images/portfolio-skincare.jpg",
-    alt: "Minimal skincare bottles and jars arranged as a soft studio still life",
-    className: "",
-  },
-  {
-    title: "Color in motion",
-    category: "Social Media",
-    type: "Concept project",
-    image: "/images/portfolio-abstract.jpg",
-    alt: "Blue and turquoise abstract liquid gradient artwork",
-    className: "",
-  },
-  {
-    title: "A fresh perspective",
-    category: "Programming and Design",
-    type: "Concept project",
-    image: "/images/portfolio-design.jpg",
-    alt: "Design workspace with a desktop monitor, studio documents and a green plant",
-    className: "",
-  },
-];
-
 export const principles = [
   {
     symbol: "◎",
