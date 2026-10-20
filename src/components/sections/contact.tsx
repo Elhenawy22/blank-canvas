@@ -169,3 +169,37 @@ export default function Contact({ dictionary }: { dictionary: Dictionary }) {
     </section>
   );
 }
+
+const FORM_AR = {
+  eyebrow: "ابدأ مشروعك",
+  title: "جاهز للخطوة الجاية؟",
+  sub: "احكيلنا عن مشروعك، ونحدد معاك الخطوة المناسبة.",
+  name: "الاسم",
+  phone: "رقم الهاتف",
+  company: "اسم الشركة",
+  optional: "(اختياري)",
+  service: "الخدمة المطلوبة",
+  choose: "اختر الخدمة",
+  services: ["هوية بصرية", "سوشيال ميديا", "تصوير", "فيديو", "برمجة وتصميم مواقع", "أخرى"],
+  brief: "نبذة عن المشروع",
+  submit: "ابدأ المحادثة",
+  sent: "تم تجهيز طلبك على واتساب — اضغط إرسال هناك.",
+  waHeader: "طلب جديد من الموقع",
+};
+
+const FORM_EN: typeof FORM_AR = {
+  eyebrow: "Start your project",
+  title: "Ready for the next step?",
+  sub: "Tell us about your project and we'll find the right next step together.",
+  name: "Name",
+  phone: "Phone number",
+  company: "Company name",
+  optional: "(optional)",
+  service: "Service needed",
+  choose: "Choose a service",
+  services: ["Branding", "Social media", "Photography", "Video", "Web design & development", "Other"],
+  brief: "About the project",
+  submit: "Start the conversation",
+  sent: "Your request is ready in WhatsApp — tap send there.",
+  waHeader: "New request from the website",
+};
