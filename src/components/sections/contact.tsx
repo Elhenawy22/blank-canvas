@@ -67,24 +67,27 @@ export default function Contact({ dictionary }: { dictionary: Dictionary }) {
     { scope: sectionRef },
   );
 
+  const isAr = /[\u0600-\u06FF]/.test(contact.form.nameLabel);
+  const t = isAr ? FORM_AR : FORM_EN;
+
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const form = event.currentTarget;
-    if (!brand.email) {
-      setFormMessage(contact.emptyEmailNote);
-      return;
-    }
-    const formData = new FormData(form);
-    const subject = encodeURIComponent(
-      contact.form.mailtoSubjectTemplate.replace("%name%", String(formData.get("name") ?? "")),
-    );
-    const body = encodeURIComponent(
-      contact.form.mailtoBodyTemplate
-        .replace("%name%", String(formData.get("name") ?? ""))
-        .replace("%email%", String(formData.get("email") ?? ""))
-        .replace("%message%", String(formData.get("message") ?? "")),
-    );
-    window.location.href = `mailto:${brand.email}?subject=${subject}&body=${body}`;
+    const f = new FormData(event.currentTarget);
+    const v = (k: string) => String(f.get(k) ?? "").trim();
+    const text = [
+      `${t.waHeader}`,
+      `${t.name}: ${v("name")}`,
+      `${t.phone}: ${v("phone")}`,
+      v("company") ? `${t.company}: ${v("company")}` : "",
+      `${t.service}: ${v("service")}`,
+      `${t.brief}: ${v("message")}`,
+    ]
+      .filter(Boolean)
+      .join("\n");
+    const number = brand.whatsappHref.replace(/\D/g, "");
+    window.open(`https://wa.me/${number}?text=${encodeURIComponent(text)}`, "_blank", "noopener");
+    setFormMessage(t.sent);
+    event.currentTarget.reset();
   }
 
   return (
@@ -124,31 +127,40 @@ export default function Contact({ dictionary }: { dictionary: Dictionary }) {
       </div>
 
       <form className="contact-form" onSubmit={handleSubmit}>
+        <p className="eyebrow eyebrow--light">{t.eyebrow}</p>
+        <h3>{t.title}</h3>
+        <p>{t.sub}</p>
+        <div className="contact-form__row">
+          <label>
+            {t.name}
+            <input autoComplete="name" name="name" required maxLength={100} />
+          </label>
+          <label>
+            {t.phone}
+            <input autoComplete="tel" name="phone" required type="tel" maxLength={20} dir="ltr" />
+          </label>
+        </div>
+        <div className="contact-form__row">
+          <label>
+            {t.company} <small>{t.optional}</small>
+            <input name="company" maxLength={100} />
+          </label>
+          <label>
+            {t.service}
+            <select name="service" required defaultValue="">
+              <option value="" disabled>{t.choose}</option>
+              {t.services.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+          </label>
+        </div>
         <label>
-          {contact.form.nameLabel}
-          <input autoComplete="name" name="name" placeholder={contact.form.namePlaceholder} required />
-        </label>
-        <label>
-          {contact.form.emailLabel}
-          <input
-            autoComplete="email"
-            name="email"
-            placeholder="you@example.com"
-            required
-            type="email"
-          />
-        </label>
-        <label>
-          {contact.form.messageLabel}
-          <textarea
-            name="message"
-            placeholder={contact.form.messagePlaceholder}
-            required
-            rows={3}
-          />
+          {t.brief}
+          <textarea name="message" required rows={4} maxLength={1000} />
         </label>
         <button className="button button--light" type="submit">
-          {contact.form.submit} <ArrowIcon />
+          {t.submit} <ArrowIcon />
         </button>
         <p aria-live="polite" className="contact-form__message">
           {formMessage}

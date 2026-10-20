@@ -4028,3 +4028,7 @@ html[lang="ar"] .contact-form input[type="email"] {
     display: none;
   }
 }
+
+.contact-form__row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.contact-form select { width: 100%; font: inherit; padding: 0.8rem 1rem; border-radius: 0.75rem; }
+@media (max-width: 640px) { .contact-form__row { grid-template-columns: 1fr; } }

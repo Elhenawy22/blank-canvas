@@ -26,17 +26,17 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
-        source: "/en/projects/:slug",
+        source: "/ar/projects/:slug",
         destination: "/projects/:slug",
         permanent: true,
       },
       {
-        source: "/en/about",
+        source: "/ar/about",
         destination: "/about",
         permanent: true,
       },
       {
-        source: "/en",
+        source: "/ar",
         destination: "/",
         permanent: true,
       },
@@ -47,15 +47,15 @@ const nextConfig: NextConfig = {
       beforeFiles: [
         {
           source: "/projects/:slug",
-          destination: "/en/projects/:slug",
+          destination: "/ar/projects/:slug",
         },
         {
           source: "/about",
-          destination: "/en/about",
+          destination: "/ar/about",
         },
         {
           source: "/",
-          destination: "/en",
+          destination: "/ar",
         },
       ],
       afterFiles: [],
