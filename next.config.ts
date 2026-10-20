@@ -16,6 +16,7 @@ import type { NextConfig } from "next";
  */
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  distDir: "dist",
   // The root layout lives under the [lang] dynamic segment, so the
   // documented global-not-found file convention is enabled to serve
   // unmatched URLs (see src/app/global-not-found.tsx).
