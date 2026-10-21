@@ -68,6 +68,8 @@ function toDataUrl(file: File, max = 1200): Promise<string> {
   });
 }
 
+import Media from "@/components/media";
+
 const css = `
 .btn.ghost{opacity:.55}
 .ad{position:fixed;inset:0;z-index:9999;display:flex;background:#f4f5f8;color:#1b1d2a;font-size:15px;overflow:hidden}
@@ -91,7 +93,7 @@ const css = `
 .ad .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
 .ad .item{background:#fff;border-radius:14px;padding:14px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
 .ad .thumb{position:relative;width:100%;aspect-ratio:16/10;border-radius:10px;overflow:hidden;background:#e9ebf1;margin-bottom:10px}
-.ad .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.ad .thumb video,.ad .thumb img{width:100%;height:100%;object-fit:cover;display:block}
 .ad .thumb label{position:absolute;bottom:8px;inset-inline-start:8px;margin:0;background:rgba(0,0,0,.7);color:#fff;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:13px}
 .ad .thumb input{display:none}
 .ad .seg{display:inline-flex;background:#eceef4;border-radius:9px;padding:3px}
@@ -114,12 +116,12 @@ function Thumb({ src, onPick }: { src: string; onPick: (v: string) => void }) {
   return (
     <div className="thumb">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      {src ? <img src={src} alt="" /> : null}
+      {src ? <Media src={src} /> : null}
       <label>
-        📷 تغيير الصورة
-        <input type="file" accept="image/*" onChange={async (e) => {
+        📷 تغيير الصورة / الفيديو
+        <input type="file" accept="image/*,video/*" onChange={async (e) => {
           const input = e.currentTarget; const f = input.files?.[0]; if (!f) return;
-          try { onPick(await toDataUrl(f)); } catch { alert("تعذّر قراءة الصورة، جرّب صورة تانية (JPG أو PNG)."); }
+          try { onPick(await toMedia(f)); } catch (err) { alert("تعذّر رفع الملف: " + ((err as Error)?.message || "جرّب ملف تاني")); }
           input.value = "";
         }} />
       </label>
@@ -247,14 +249,14 @@ export default function AdminPanel() {
     const form = e.currentTarget;
     const f = new FormData(form);
     const file = f.get("file") as File;
-    if (!file || !file.size) return setMsg("اختر صورة من جهازك.");
+    if (!file || !file.size) return setMsg("اختر صورة أو فيديو من جهازك.");
     setBusy(true);
     try {
-      const image = await toDataUrl(file);
+      const image = await toMedia(file);
       const { error } = await db.from("cms_projects").insert({ title: String(f.get("title")), category: String(f.get("category")), link: String(f.get("link") || "") || null, image });
       setMsg(error ? "حصل خطأ: " + error.message : "✓ تم إضافة المشروع");
       if (!error) { form.reset(); loadProjects(); }
-    } catch { setMsg("تعذّر قراءة الصورة."); }
+    } catch (err) { setMsg("تعذّر رفع الملف: " + ((err as Error)?.message || "")); }
     setBusy(false);
   }
   async function removeProject(id: string) {
@@ -458,7 +460,7 @@ export default function AdminPanel() {
               <div className="grid2">
                 <label>اسم المشروع<input name="title" required /></label>
                 <label>القسم<select name="category">{Object.entries(CATS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></label>
-                <label>الصورة من جهازك<input name="file" type="file" accept="image/*" required /></label>
+                <label>صورة أو فيديو من جهازك<input name="file" type="file" accept="image/*,video/*" required /></label>
                 <label>رابط (اختياري)<input name="link" type="url" dir="ltr" placeholder="https://" /></label>
               </div>
               <button className="btn" disabled={busy} type="submit">➕ إضافة المشروع</button>
@@ -467,7 +469,7 @@ export default function AdminPanel() {
               {projects.filter((p) => !p.category.startsWith("service-")).map((p) => (
                 <div key={p.id} className="item">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <div className="thumb"><img src={p.image} alt={p.title} /></div>
+                  <div className="thumb"><Media src={p.image} alt={p.title} /></div>
                   <p style={{ margin: "0 0 10px" }}><strong>{p.title}</strong> · <small>{CATS[p.category] ?? svcName(p.category)}</small></p>
                   <button className="btn red" onClick={() => removeProject(p.id)}>حذف</button>
                 </div>
@@ -506,7 +508,7 @@ export default function AdminPanel() {
               <div className="grid2">
                 <label>الخدمة<select name="category">{svcTitles.map((t, i) => <option key={i} value={`service-${i + 1}`}>{i + 1}. {t}</option>)}</select></label>
                 <label>اسم المشروع / الصورة<input name="title" required /></label>
-                <label>الصورة من جهازك<input name="file" type="file" accept="image/*" required /></label>
+                <label>صورة أو فيديو من جهازك<input name="file" type="file" accept="image/*,video/*" required /></label>
                 <label>رابط (اختياري)<input name="link" type="url" dir="ltr" placeholder="https://" /></label>
               </div>
               <button className="btn" disabled={busy} type="submit">➕ إضافة</button>
@@ -515,7 +517,7 @@ export default function AdminPanel() {
               {projects.filter((p) => p.category.startsWith("service-")).map((p) => (
                 <div key={p.id} className="item">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <div className="thumb"><img src={p.image} alt={p.title} /></div>
+                  <div className="thumb"><Media src={p.image} alt={p.title} /></div>
                   <p style={{ margin: "0 0 10px" }}><strong>{p.title}</strong> · <small>{svcName(p.category)}</small></p>
                   <button className="btn red" onClick={() => removeProject(p.id)}>حذف</button>
                 </div>
