@@ -5,7 +5,8 @@ import { useEffect, useRef, useState } from "react";
 import { useGSAP } from "@gsap/react";
 import Image from "next/image";
 import RevealWords from "@/components/motion/reveal-words";
-import { categoryOrder, projects, type CategoryId } from "@/data/portfolio";
+import { categoryOrder, projects as baseProjects, type CategoryId } from "@/data/portfolio";
+import { deepMerge, useDict, useSettings } from "@/lib/site-settings";
 import type { Dictionary } from "@/i18n/dictionaries";
 import { db } from "@/lib/db";
 import { ensureGsap, gsap, prefersReducedMotion, EASE, ScrollTrigger } from "@/lib/motion";
@@ -23,7 +24,10 @@ import { ensureGsap, gsap, prefersReducedMotion, EASE, ScrollTrigger } from "@/l
  * - Each card's inner image drifts slightly while travelling through the
  *   viewport (transform-only scrub).
  */
-export default function Work({ dictionary, locale }: { dictionary: Dictionary; locale: Locale }) {
+export default function Work({ dictionary: raw, locale }: { dictionary: Dictionary; locale: Locale }) {
+  const dictionary = useDict(raw);
+  const settings = useSettings();
+  const projects = deepMerge(baseProjects.map((p) => ({ ...p, hidden: false })), settings.projects).filter((p) => !p.hidden);
   const work = dictionary.work;
   const [activeCategory, setActiveCategory] = useState<CategoryId>("all");
   const sectionRef = useRef<HTMLElement>(null);
