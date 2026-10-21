@@ -48,7 +48,7 @@ export default function SocialLinks({
             <a
               aria-label={`${dictionary.hero.socialAria} — ${social.label}`}
               className="social-link"
-              href={social.href}
+              href={social.href.replace(/[?&]mibextid=[^&]*/g, "")}
               rel="noreferrer noopener"
               target="_blank"
               title={social.label}
