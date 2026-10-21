@@ -6,7 +6,7 @@ import Image from "next/image";
 import { ArrowIcon } from "@/components/icons";
 import RevealWords from "@/components/motion/reveal-words";
 import type { Dictionary } from "@/i18n/dictionaries";
-import { useDict, useSettings } from "@/lib/site-settings";
+import { useDict, useLoc, useSettings } from "@/lib/site-settings";
 import { ensureGsap, gsap, prefersReducedMotion, EASE } from "@/lib/motion";
 
 /**
@@ -16,7 +16,7 @@ import { ensureGsap, gsap, prefersReducedMotion, EASE } from "@/lib/motion";
 export default function Services({ dictionary: raw }: { dictionary: Dictionary }) {
   const dictionary = useDict(raw);
   const settings = useSettings();
-  const loc = raw.services.eyebrow === dictionary.services.eyebrow && /[a-z]/i.test(raw.services.eyebrow) ? "en" : "ar";
+  const loc = useLoc();
   const list = settings.servicesList;
   const services = {
     ...dictionary.services,

@@ -75,10 +75,15 @@ export function deepMerge<T>(base: T, over: unknown): T {
 }
 
 /** Dictionary with the admin's text edits for the current language applied. */
+export function useLoc(): L {
+  const [loc, setLoc] = useState<L>("ar");
+  useEffect(() => setLoc(window.location.pathname.startsWith("/en") ? "en" : "ar"), []);
+  return loc;
+}
+
 export function useDict<T>(dictionary: T): T {
   const s = useSettings();
-  const [loc, setLoc] = useState("ar");
-  useEffect(() => setLoc(window.location.pathname.startsWith("/en") ? "en" : "ar"), []);
+  const loc = useLoc();
   return useMemo(() => deepMerge(dictionary, s.content?.[loc]), [dictionary, s, loc]);
 }
 
