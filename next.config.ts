@@ -1,31 +1,36 @@
 import type { NextConfig } from "next";
+import { PHASE_DEVELOPMENT_SERVER } from "next/constants";
 
 /**
- * Routing for the root locale.
- *
- * English lives at `/`, but every page is rendered by the `[lang]` route, so
- * `/` is an internal rewrite to `/en` and `/en` permanently redirects back to
- * the canonical root. The same mapping keeps English project pages at clean
- * `/projects/:slug` URLs. These rules live in `next.config.ts` rather than a
- * `proxy.ts` middleware because middleware rewrites must be absolute URLs;
- * Next normalizes loopback hosts to `localhost` while the router compares the
- * rewrite origin against the hostname passed to `next start -H`. When those
- * differ (e.g. `-H 127.0.0.1`) the internal rewrite is treated as external
- * and becomes a 308 back to `/` — an infinite loop. Config rewrites are
- * path-based, so they stay internal on every host and binding.
+ * Static export into dist/. Every link points at an exact `index.html`
+ * file so it works on hosts that only serve exact files. The dev server
+ * has no such files, so in development `/` and `…/index.html` are
+ * rewritten to the matching route (rewrites are dev-only because static
+ * export does not support them).
  */
-const nextConfig: NextConfig = {
+const base: NextConfig = {
   poweredByHeader: false,
   distDir: "dist",
   output: "export",
   trailingSlash: true,
   images: { unoptimized: true },
-  // The root layout lives under the [lang] dynamic segment, so the
-  // documented global-not-found file convention is enabled to serve
-  // unmatched URLs (see src/app/global-not-found.tsx).
   experimental: {
     globalNotFound: true,
   },
 };
 
-export default nextConfig;
+export default function config(phase: string): NextConfig {
+  if (phase !== PHASE_DEVELOPMENT_SERVER) return base;
+  // Export mode validates rewritten params, so dev runs as a normal server.
+  const { output: _output, ...dev } = base;
+  return {
+    ...dev,
+    async rewrites() {
+      return [
+        { source: "/", destination: "/ar/" },
+        { source: "/index.html", destination: "/ar/" },
+        { source: "/:path*/index.html", destination: "/:path*/" },
+      ];
+    },
+  };
+}
