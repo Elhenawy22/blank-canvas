@@ -3,7 +3,50 @@
 import { useEffect, useState, type FormEvent } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { db } from "@/lib/db";
-import { fetchSettings, type SiteSettings } from "@/lib/site-settings";
+import { deepMerge, fetchSettings, type SiteSettings } from "@/lib/site-settings";
+import { getDictionary } from "@/i18n/dictionaries";
+import { projects as baseProjects } from "@/data/portfolio";
+import { salesResults as baseResults } from "@/data/sales-results";
+
+const LABELS: Record<string, string> = { title: "العنوان", description: "الوصف", eyebrow: "العنوان الصغير", lines: "سطور العنوان", items: "العناصر", tags: "الوسوم", summary: "الملخص", image: "الصورة", gallery: "صور إضافية", hidden: "إخفاء", metrics: "الأرقام", sales: "المبيعات", orders: "الطلبات", conversion: "التحويل", period: "الفترة", cases: "الحالات", projects: "المشاريع", categories: "الأقسام", alt: "وصف الصورة" };
+const SECTIONS = [
+  ["services", "ماذا نقدم / خدماتنا"],
+  ["results", "نتائج العملاء (نصوص)"],
+  ["work", "أعمال مختارة (نصوص)"],
+  ["#projects", "أعمال مختارة (صور / إخفاء)"],
+  ["#results", "نتائج العملاء (صور / أرقام)"],
+] as const;
+const isImg = (v: string) => /^(\/images\/|data:image)/.test(v);
+
+function Edit({ v, k, on }: { v: unknown; k: string; on: (n: unknown) => void }) {
+  const label = LABELS[k] ?? k;
+  if (typeof v === "boolean")
+    return <label style={{ display: "flex", gap: 8, alignItems: "center", margin: "8px 0" }}><input type="checkbox" checked={v} onChange={(e) => on(e.target.checked)} style={{ width: "auto", margin: 0 }} />{label}</label>;
+  if (typeof v === "string") {
+    if (isImg(v))
+      return (
+        <div style={{ margin: "8px 0" }}>
+          <small>{label}</small>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={v} alt="" style={{ width: 140, borderRadius: 8, display: "block", margin: "4px 0" }} />
+          <input type="file" accept="image/*" onChange={async (e) => { const f = e.target.files?.[0]; if (f) on(await toDataUrl(f)); }} />
+        </div>
+      );
+    return <label>{label}{v.length > 70 ? <textarea rows={3} value={v} onChange={(e) => on(e.target.value)} /> : <input value={v} onChange={(e) => on(e.target.value)} />}</label>;
+  }
+  if (v && typeof v === "object") {
+    const entries = Array.isArray(v) ? v.map((x, i) => [String(i), x] as const) : Object.entries(v);
+    return (
+      <details open={k === ""} style={{ border: "1px solid #e3e3e3", borderRadius: 10, padding: "6px 10px", margin: "8px 0" }}>
+        <summary style={{ cursor: "pointer", fontWeight: 600 }}>{Array.isArray(v) ? `${label}` : /^\d+$/.test(k) ? `#${Number(k) + 1}` : label || "المحتوى"}</summary>
+        {entries.map(([ck, cv]) => (
+          <Edit key={ck} k={ck} v={cv} on={(n) => on(Array.isArray(v) ? v.map((x, i) => (String(i) === ck ? n : x)) : { ...v, [ck]: n })} />
+        ))}
+      </details>
+    );
+  }
+  return null;
+}
 
 type Order = { id: string; name: string; phone: string; company: string | null; service: string; message: string; status: string; created_at: string };
 type Proj = { id: string; title: string; category: string; image: string; link: string | null; sort: number };
@@ -62,7 +105,10 @@ export default function AdminPanel() {
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [tab, setTab] = useState<"orders" | "settings" | "projects">("orders");
+  const [tab, setTab] = useState<"orders" | "settings" | "content" | "projects">("orders");
+  const [lang, setLang] = useState<"ar" | "en">("ar");
+  const [section, setSection] = useState<string>("services");
+  const [draft, setDraft] = useState<unknown>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [settings, setSettings] = useState<SiteSettings>({});
   const [projects, setProjects] = useState<Proj[]>([]);
@@ -100,16 +146,40 @@ export default function AdminPanel() {
     if (error) setMsg("بيانات الدخول غير صحيحة.");
   }
 
+  async function persist(data: SiteSettings) {
+    setBusy(true);
+    const { data: rows, error } = await db.from("site_settings").update({ data: data as never, updated_at: new Date().toISOString() }).eq("id", 1).select("id");
+    setBusy(false);
+    const ok = !error && rows && rows.length > 0;
+    setMsg(ok ? "تم الحفظ ✓ — افتح الموقع أو حدّث الصفحة لرؤية التعديل" : "لم يتم الحفظ: " + (error?.message ?? "لا توجد صلاحية"));
+    if (ok) setSettings(data);
+  }
+
+  function baseFor(sec: string, l: "ar" | "en"): unknown {
+    if (sec === "#projects") return baseProjects.map((p) => ({ hidden: false, image: p.image }));
+    if (sec === "#results") return baseResults.map((r) => ({ image: r.image, metrics: r.metrics }));
+    return (getDictionary(l) as unknown as Record<string, unknown>)[sec];
+  }
+  function savedFor(sec: string, l: "ar" | "en", st: SiteSettings): unknown {
+    if (sec === "#projects") return st.projects;
+    if (sec === "#results") return st.results;
+    return st.content?.[l]?.[sec];
+  }
+  useEffect(() => { setDraft(deepMerge(baseFor(section, lang), savedFor(section, lang, settings))); }, [section, lang, settings]);
+  function saveContent() {
+    const next: SiteSettings = { ...settings };
+    if (section === "#projects") next.projects = draft as Record<string, unknown>[];
+    else if (section === "#results") next.results = draft as Record<string, unknown>[];
+    else next.content = { ...next.content, [lang]: { ...next.content?.[lang], [section]: draft as Record<string, unknown> } };
+    persist(next);
+  }
+
   async function saveSettings(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
-    const data: Record<string, string> = {};
-    FIELDS.forEach(([k]) => { const v = String(f.get(k) ?? "").trim(); if (v) data[k] = v; });
-    setBusy(true);
-    const { error } = await db.from("site_settings").upsert({ id: 1, data, updated_at: new Date().toISOString() });
-    setBusy(false);
-    setMsg(error ? "حصل خطأ في الحفظ: " + error.message : "تم حفظ الإعدادات ✓");
-    if (!error) setSettings(data);
+    const data: Record<string, unknown> = { ...settings };
+    FIELDS.forEach(([k]) => { const v = String(f.get(k) ?? "").trim(); if (v) data[k] = v; else delete data[k]; });
+    persist(data as SiteSettings);
   }
 
   async function addProject(e: FormEvent<HTMLFormElement>) {
@@ -168,7 +238,7 @@ export default function AdminPanel() {
       {!isAdmin ? <p>هذا الحساب ليس له صلاحية المدير.</p> : (
         <>
           <div className="tabs">
-            {([["orders", `الطلبات (${orders.length})`], ["settings", "بيانات الموقع"], ["projects", `المشاريع (${projects.length})`]] as const).map(([k, l]) => (
+            {([["orders", `الطلبات (${orders.length})`], ["settings", "بيانات الموقع"], ["content", "تعديل الأقسام"], ["projects", `المشاريع (${projects.length})`]] as const).map(([k, l]) => (
               <button key={k} className={tab === k ? "on" : ""} onClick={() => { setTab(k); setMsg(""); }}>{l}</button>
             ))}
           </div>
@@ -201,17 +271,28 @@ export default function AdminPanel() {
               <p style={{ marginTop: 0 }}>اترك الحقل فاضي لاستخدام القيمة الحالية في الموقع.</p>
               <div className="two">
                 {FIELDS.map(([k, label, dir]) => (
-                  <label key={k}>{label}<input name={k} defaultValue={settings[k] ?? ""} dir={dir} /></label>
+                  <label key={k}>{label}<input name={k} defaultValue={String(settings[k] ?? "")} dir={dir} /></label>
                 ))}
               </div>
               <button className="btn" disabled={busy} type="submit" style={{ width: "100%" }}>{busy ? "جارٍ الحفظ…" : "حفظ"}</button>
             </form>
           )}
 
+          {tab === "content" && (
+            <div className="card">
+              <div className="two">
+                <label>القسم<select value={section} onChange={(e) => setSection(e.target.value)}>{SECTIONS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select></label>
+                {!section.startsWith("#") && <label>اللغة<select value={lang} onChange={(e) => setLang(e.target.value as "ar" | "en")}><option value="ar">العربية</option><option value="en">English</option></select></label>}
+              </div>
+              {draft !== null && <Edit k="" v={draft} on={setDraft} />}
+              <button className="btn" disabled={busy} onClick={saveContent} style={{ width: "100%", position: "sticky", bottom: 10 }}>{busy ? "جارٍ الحفظ…" : "حفظ التعديلات"}</button>
+            </div>
+          )}
+
           {tab === "projects" && (
             <>
               <form onSubmit={addProject} className="card">
-                <strong>رفع مشروع جديد</strong>
+                <strong>رفع مشروع جديد (لتعديل المشاريع الموجودة استخدم "تعديل الأقسام")</strong>
                 <div className="two" style={{ marginTop: 10 }}>
                   <label>اسم المشروع<input name="title" required /></label>
                   <label>القسم<select name="category">{Object.entries(CATS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></label>
