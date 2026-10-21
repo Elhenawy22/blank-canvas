@@ -1,69 +1,28 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { db } from "@/lib/db";
-import { deepMerge, fetchSettings, type SiteSettings } from "@/lib/site-settings";
+import { deepMerge, fetchSettings, type ProjectEdit, type ResultEdit, type ServiceEdit, type SiteSettings } from "@/lib/site-settings";
 import { getDictionary } from "@/i18n/dictionaries";
 import { projects as baseProjects } from "@/data/portfolio";
 import { salesResults as baseResults } from "@/data/sales-results";
-
-const LABELS: Record<string, string> = { title: "العنوان", description: "الوصف", eyebrow: "العنوان الصغير", lines: "سطور العنوان", items: "العناصر", tags: "الوسوم", summary: "الملخص", image: "الصورة", gallery: "صور إضافية", hidden: "إخفاء", metrics: "الأرقام", sales: "المبيعات", orders: "الطلبات", conversion: "التحويل", period: "الفترة", cases: "الحالات", projects: "المشاريع", categories: "الأقسام", alt: "وصف الصورة" };
-const SECTIONS = [
-  ["services", "ماذا نقدم / خدماتنا"],
-  ["results", "نتائج العملاء (نصوص)"],
-  ["work", "أعمال مختارة (نصوص)"],
-  ["#projects", "أعمال مختارة (صور / إخفاء)"],
-  ["#results", "نتائج العملاء (صور / أرقام)"],
-] as const;
-const isImg = (v: string) => /^(\/images\/|data:image)/.test(v);
-
-function Edit({ v, k, on }: { v: unknown; k: string; on: (n: unknown) => void }) {
-  const label = LABELS[k] ?? k;
-  if (typeof v === "boolean")
-    return <label style={{ display: "flex", gap: 8, alignItems: "center", margin: "8px 0" }}><input type="checkbox" checked={v} onChange={(e) => on(e.target.checked)} style={{ width: "auto", margin: 0 }} />{label}</label>;
-  if (typeof v === "string") {
-    if (isImg(v))
-      return (
-        <div style={{ margin: "8px 0" }}>
-          <small>{label}</small>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={v} alt="" style={{ width: 140, borderRadius: 8, display: "block", margin: "4px 0" }} />
-          <input type="file" accept="image/*" onChange={async (e) => { const f = e.target.files?.[0]; if (f) on(await toDataUrl(f)); }} />
-        </div>
-      );
-    return <label>{label}{v.length > 70 ? <textarea rows={3} value={v} onChange={(e) => on(e.target.value)} /> : <input value={v} onChange={(e) => on(e.target.value)} />}</label>;
-  }
-  if (v && typeof v === "object") {
-    const entries = Array.isArray(v) ? v.map((x, i) => [String(i), x] as const) : Object.entries(v);
-    return (
-      <details open={k === ""} style={{ border: "1px solid #e3e3e3", borderRadius: 10, padding: "6px 10px", margin: "8px 0" }}>
-        <summary style={{ cursor: "pointer", fontWeight: 600 }}>{Array.isArray(v) ? `${label}` : /^\d+$/.test(k) ? `#${Number(k) + 1}` : label || "المحتوى"}</summary>
-        {entries.map(([ck, cv]) => (
-          <Edit key={ck} k={ck} v={cv} on={(n) => on(Array.isArray(v) ? v.map((x, i) => (String(i) === ck ? n : x)) : { ...v, [ck]: n })} />
-        ))}
-      </details>
-    );
-  }
-  return null;
-}
+import { brand, socials } from "@/data/brand";
+import { serviceArtwork } from "@/components/sections/services";
 
 type Order = { id: string; name: string; phone: string; company: string | null; service: string; message: string; status: string; created_at: string };
 type Proj = { id: string; title: string; category: string; image: string; link: string | null; sort: number };
+type Lang = "ar" | "en";
+type Page = "orders" | "settings" | "services" | "results" | "work";
 
 const STATUS: Record<string, string> = { new: "جديد", contacted: "تم التواصل", done: "مكتمل" };
 const CATS: Record<string, string> = { branding: "هوية بصرية", social: "سوشيال ميديا", dev: "برمجة وتصميم", photo: "تصوير", video: "فيديو" };
-const FIELDS: [keyof SiteSettings, string, string?][] = [
-  ["siteName", "اسم الموقع"],
-  ["email", "البريد الإلكتروني", "ltr"],
-  ["phone", "رقم الهاتف", "ltr"],
-  ["whatsapp", "رقم الواتساب (بالكود الدولي مثل 2012...)", "ltr"],
-  ["address", "العنوان"],
-  ["instagram", "رابط إنستجرام", "ltr"],
-  ["facebook", "رابط فيسبوك", "ltr"],
-  ["linkedin", "رابط لينكدإن", "ltr"],
-  ["x", "رابط X (تويتر)", "ltr"],
-  ["youtube", "رابط يوتيوب", "ltr"],
+const NAV: [Page, string, string][] = [
+  ["orders", "الطلبات", "📥"],
+  ["settings", "بيانات الموقع", "⚙️"],
+  ["services", "خدماتنا", "🧩"],
+  ["results", "نتائج العملاء", "📈"],
+  ["work", "أعمال مختارة", "🖼️"],
 ];
 
 /** Shrinks a picture from the computer to a compact JPEG so it can be stored directly. */
@@ -85,32 +44,79 @@ function toDataUrl(file: File, max = 1400): Promise<string> {
 }
 
 const css = `
-.adm{max-width:960px;margin:0 auto;padding:100px 16px 60px;font-size:16px}
-.adm h1{font-size:clamp(22px,5vw,32px);margin:0}
-.adm input,.adm select,.adm textarea{display:block;width:100%;box-sizing:border-box;padding:12px;margin:6px 0 14px;border-radius:10px;border:1px solid #ccc;font:inherit;background:#fff;color:#111}
-.adm .btn{padding:10px 18px;border-radius:999px;border:0;background:#16162a;color:#fff;cursor:pointer;font:inherit;min-height:44px}
-.adm .btn.gray{background:#888}.adm .btn.red{background:#b42318}
-.adm .bar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
-.adm .tabs{display:flex;gap:6px;margin:18px 0;overflow-x:auto}
-.adm .tabs button{flex:1;white-space:nowrap;padding:10px 14px;border-radius:999px;border:1px solid #16162a;background:transparent;color:inherit;font:inherit;cursor:pointer;min-height:44px}
-.adm .tabs button.on{background:#16162a;color:#fff}
-.adm .card{border:1px solid #ddd;border-radius:14px;padding:14px;margin:12px 0;overflow-wrap:anywhere}
-.adm .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
-.adm .grid img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px;display:block}
-.adm .two{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
-@media(max-width:640px){.adm .two{grid-template-columns:1fr}.adm{padding-top:90px}}
-`;
+.ad{position:fixed;inset:0;z-index:9999;display:flex;background:#f4f5f8;color:#1b1d2a;font-size:15px;overflow:hidden}
+.ad *{box-sizing:border-box}
+.ad aside{width:230px;background:#16162a;color:#fff;display:flex;flex-direction:column;padding:18px 12px;gap:4px;flex-shrink:0}
+.ad aside .logo{font-weight:800;font-size:18px;padding:6px 10px 18px}
+.ad aside button{display:flex;gap:10px;align-items:center;width:100%;text-align:start;background:transparent;border:0;color:#c9cbe0;padding:11px 12px;border-radius:10px;font:inherit;cursor:pointer}
+.ad aside button.on,.ad aside button:hover{background:#2a2a48;color:#fff}
+.ad aside .out{margin-top:auto}
+.ad .main{flex:1;overflow-y:auto;padding:24px}
+.ad .head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+.ad h1{font-size:24px;margin:0}
+.ad h3{margin:0 0 10px;font-size:16px}
+.ad .panel{background:#fff;border-radius:14px;padding:18px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.ad label{display:block;font-size:13px;color:#555;margin-bottom:12px}
+.ad input,.ad select,.ad textarea{display:block;width:100%;padding:10px 12px;margin-top:5px;border-radius:9px;border:1px solid #d5d7e0;font:inherit;font-size:15px;background:#fff;color:#111}
+.ad textarea{min-height:80px;resize:vertical}
+.ad .btn{padding:10px 18px;border-radius:9px;border:0;background:#4f46e5;color:#fff;cursor:pointer;font:inherit;min-height:42px}
+.ad .btn.light{background:#eceef4;color:#1b1d2a}.ad .btn.red{background:#fde8e8;color:#b42318}
+.ad .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+.ad .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.ad .item{background:#fff;border-radius:14px;padding:14px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.ad .thumb{position:relative;width:100%;aspect-ratio:16/10;border-radius:10px;overflow:hidden;background:#e9ebf1;margin-bottom:10px}
+.ad .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.ad .thumb label{position:absolute;bottom:8px;inset-inline-start:8px;margin:0;background:rgba(0,0,0,.7);color:#fff;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:13px}
+.ad .thumb input{display:none}
+.ad .seg{display:inline-flex;background:#eceef4;border-radius:9px;padding:3px}
+.ad .seg button{border:0;background:transparent;padding:7px 14px;border-radius:7px;font:inherit;cursor:pointer;color:#1b1d2a}
+.ad .seg button.on{background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.1)}
+.ad .save{position:sticky;bottom:0;background:#f4f5f8;padding:12px 0;display:flex;gap:10px;align-items:center}
+.ad .msg{font-size:14px}
+.ad .muted{opacity:.45}
+@media(max-width:760px){
+ .ad{flex-direction:column}
+ .ad aside{width:100%;flex-direction:row;overflow-x:auto;padding:8px;gap:4px}
+ .ad aside .logo{display:none}
+ .ad aside button{width:auto;white-space:nowrap;padding:9px 12px}
+ .ad aside .out{margin-top:0}
+ .ad .main{padding:14px}
+ .ad .grid2{grid-template-columns:1fr}
+}`;
+
+function Thumb({ src, onPick }: { src: string; onPick: (v: string) => void }) {
+  return (
+    <div className="thumb">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      {src ? <img src={src} alt="" /> : null}
+      <label>
+        📷 تغيير الصورة
+        <input type="file" accept="image/*" onChange={async (e) => { const f = e.target.files?.[0]; if (f) onPick(await toDataUrl(f)); }} />
+      </label>
+    </div>
+  );
+}
+
+function Field({ label, value, onChange, long, ltr }: { label: string; value: string | undefined; onChange: (v: string) => void; long?: boolean; ltr?: boolean }) {
+  return (
+    <label>
+      {label}
+      {long ? <textarea value={value ?? ""} onChange={(e) => onChange(e.target.value)} /> : <input value={value ?? ""} dir={ltr ? "ltr" : undefined} onChange={(e) => onChange(e.target.value)} />}
+    </label>
+  );
+}
+
+const dict = (l: Lang) => getDictionary(l);
+type Heading = { eyebrow: string; lines: string[]; description?: string };
 
 export default function AdminPanel() {
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [tab, setTab] = useState<"orders" | "settings" | "content" | "projects">("orders");
-  const [lang, setLang] = useState<"ar" | "en">("ar");
-  const [section, setSection] = useState<string>("services");
-  const [draft, setDraft] = useState<unknown>(null);
+  const [page, setPage] = useState<Page>("orders");
+  const [lang, setLang] = useState<Lang>("ar");
   const [orders, setOrders] = useState<Order[]>([]);
-  const [settings, setSettings] = useState<SiteSettings>({});
+  const [st, setSt] = useState<SiteSettings>({});
   const [projects, setProjects] = useState<Proj[]>([]);
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
@@ -125,7 +131,7 @@ export default function AdminPanel() {
     if (!session) return;
     db.rpc("has_role", { _user_id: session.user.id, _role: "admin" }).then(({ data: ok }) => {
       setIsAdmin(!!ok);
-      if (ok) { loadOrders(); loadProjects(); fetchSettings(true).then(setSettings); }
+      if (ok) { loadOrders(); loadProjects(); fetchSettings(true).then(setSt); }
     });
   }, [session]);
 
@@ -138,48 +144,47 @@ export default function AdminPanel() {
     setProjects((data as Proj[]) ?? []);
   }
 
+  async function save() {
+    setBusy(true);
+    const { data: rows, error } = await db.from("site_settings").update({ data: st as never, updated_at: new Date().toISOString() }).eq("id", 1).select("id");
+    setBusy(false);
+    setMsg(!error && rows?.length ? "✓ تم الحفظ — التعديل ظاهر في الموقع الآن" : "لم يتم الحفظ: " + (error?.message ?? "لا توجد صلاحية"));
+  }
+  const patch = (p: Partial<SiteSettings>) => { setSt((s) => ({ ...s, ...p })); setMsg(""); };
+
+  // --- section headings (per language) ---
+  const heading = (sec: "services" | "results" | "work"): Heading =>
+    deepMerge(dict(lang)[sec] as unknown as Heading, st.content?.[lang]?.[sec]);
+  const setHeading = (sec: "services" | "results" | "work", h: Partial<Heading>) =>
+    patch({ content: { ...st.content, [lang]: { ...st.content?.[lang], [sec]: { ...(st.content?.[lang]?.[sec] as object), ...h } } } });
+
+  // --- lists with current site values as the starting point ---
+  const services: ServiceEdit[] = st.servicesList ?? dict("ar").services.items.map((it, i) => ({
+    image: serviceArtwork[i % serviceArtwork.length],
+    text: { ar: { ...it, tags: it.tags ? [...it.tags] : [] }, en: { ...dict("en").services.items[i], tags: dict("en").services.items[i]?.tags ? [...dict("en").services.items[i].tags!] : [] } },
+  }));
+  const results: ResultEdit[] = st.resultsList ?? baseResults.map((r) => ({
+    id: r.id, image: r.image, metrics: { ...r.metrics },
+    text: { ar: { ...dict("ar").results.cases[r.id] }, en: { ...dict("en").results.cases[r.id] } },
+  }));
+  const works: ProjectEdit[] = baseProjects.map((p) => {
+    const e = st.projects?.find((x) => x.slug === p.slug);
+    return {
+      slug: p.slug, image: e?.image || p.image, categoryId: e?.categoryId || p.categoryId, hidden: e?.hidden ?? false,
+      text: { ar: { title: e?.text?.ar?.title || dict("ar").work.projects[p.slug]?.title }, en: { title: e?.text?.en?.title || dict("en").work.projects[p.slug]?.title } },
+    };
+  });
+
+  const setService = (i: number, v: ServiceEdit) => patch({ servicesList: services.map((x, n) => (n === i ? v : x)) });
+  const setResult = (i: number, v: ResultEdit) => patch({ resultsList: results.map((x, n) => (n === i ? v : x)) });
+  const setWork = (i: number, v: ProjectEdit) => patch({ projects: works.map((x, n) => (n === i ? v : x)) });
+
   async function signIn(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
     setMsg("");
     const { error } = await db.auth.signInWithPassword({ email: String(f.get("email")), password: String(f.get("password")) });
     if (error) setMsg("بيانات الدخول غير صحيحة.");
-  }
-
-  async function persist(data: SiteSettings) {
-    setBusy(true);
-    const { data: rows, error } = await db.from("site_settings").update({ data: data as never, updated_at: new Date().toISOString() }).eq("id", 1).select("id");
-    setBusy(false);
-    const ok = !error && rows && rows.length > 0;
-    setMsg(ok ? "تم الحفظ ✓ — افتح الموقع أو حدّث الصفحة لرؤية التعديل" : "لم يتم الحفظ: " + (error?.message ?? "لا توجد صلاحية"));
-    if (ok) setSettings(data);
-  }
-
-  function baseFor(sec: string, l: "ar" | "en"): unknown {
-    if (sec === "#projects") return baseProjects.map((p) => ({ hidden: false, image: p.image }));
-    if (sec === "#results") return baseResults.map((r) => ({ image: r.image, metrics: r.metrics }));
-    return (getDictionary(l) as unknown as Record<string, unknown>)[sec];
-  }
-  function savedFor(sec: string, l: "ar" | "en", st: SiteSettings): unknown {
-    if (sec === "#projects") return st.projects;
-    if (sec === "#results") return st.results;
-    return st.content?.[l]?.[sec];
-  }
-  useEffect(() => { setDraft(deepMerge(baseFor(section, lang), savedFor(section, lang, settings))); }, [section, lang, settings]);
-  function saveContent() {
-    const next: SiteSettings = { ...settings };
-    if (section === "#projects") next.projects = draft as Record<string, unknown>[];
-    else if (section === "#results") next.results = draft as Record<string, unknown>[];
-    else next.content = { ...next.content, [lang]: { ...next.content?.[lang], [section]: draft as Record<string, unknown> } };
-    persist(next);
-  }
-
-  async function saveSettings(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const f = new FormData(e.currentTarget);
-    const data: Record<string, unknown> = { ...settings };
-    FIELDS.forEach(([k]) => { const v = String(f.get(k) ?? "").trim(); if (v) data[k] = v; else delete data[k]; });
-    persist(data as SiteSettings);
   }
 
   async function addProject(e: FormEvent<HTMLFormElement>) {
@@ -191,19 +196,12 @@ export default function AdminPanel() {
     setBusy(true);
     try {
       const image = await toDataUrl(file);
-      const { error } = await db.from("cms_projects").insert({
-        title: String(f.get("title")),
-        category: String(f.get("category")),
-        link: String(f.get("link") || "") || null,
-        sort: Number(f.get("sort") || 0),
-        image,
-      });
-      setMsg(error ? "حصل خطأ: " + error.message : "تم رفع المشروع ✓");
+      const { error } = await db.from("cms_projects").insert({ title: String(f.get("title")), category: String(f.get("category")), link: String(f.get("link") || "") || null, image });
+      setMsg(error ? "حصل خطأ: " + error.message : "✓ تم إضافة المشروع");
       if (!error) { form.reset(); loadProjects(); }
     } catch { setMsg("تعذّر قراءة الصورة."); }
     setBusy(false);
   }
-
   async function removeProject(id: string) {
     if (!confirm("حذف المشروع؟")) return;
     await db.from("cms_projects").delete().eq("id", id);
@@ -212,110 +210,217 @@ export default function AdminPanel() {
   async function setStatus(id: string, status: string) { await db.from("orders").update({ status }).eq("id", id); loadOrders(); }
   async function removeOrder(id: string) { if (!confirm("حذف الطلب؟")) return; await db.from("orders").delete().eq("id", id); loadOrders(); }
 
-  if (!ready) return <main dir="rtl" className="adm"><style>{css}</style>جارٍ التحميل…</main>;
+  if (!ready) return <main dir="rtl" className="ad"><style>{css}</style><div className="main">جارٍ التحميل…</div></main>;
 
-  if (!session)
+  if (!session || !isAdmin)
     return (
-      <main dir="rtl" className="adm" style={{ maxWidth: 420 }}>
+      <main dir="rtl" className="ad" style={{ alignItems: "center", justifyContent: "center" }}>
         <style>{css}</style>
-        <h1>لوحة التحكم</h1>
-        <form onSubmit={signIn} style={{ marginTop: 20 }}>
-          <label>البريد الإلكتروني<input name="email" type="email" required dir="ltr" /></label>
-          <label>كلمة المرور<input name="password" type="password" required dir="ltr" /></label>
-          <button className="btn" type="submit" style={{ width: "100%" }}>تسجيل الدخول</button>
+        <form onSubmit={signIn} className="panel" style={{ width: "min(400px, 92vw)" }}>
+          <h1 style={{ marginBottom: 18 }}>لوحة التحكم</h1>
+          {session ? (
+            <>
+              <p>هذا الحساب ليس له صلاحية المدير.</p>
+              <button type="button" className="btn light" onClick={() => db.auth.signOut()}>خروج</button>
+            </>
+          ) : (
+            <>
+              <label>البريد الإلكتروني<input name="email" type="email" required dir="ltr" /></label>
+              <label>كلمة المرور<input name="password" type="password" required dir="ltr" /></label>
+              <button className="btn" type="submit" style={{ width: "100%" }}>تسجيل الدخول</button>
+              <p className="msg">{msg}</p>
+            </>
+          )}
         </form>
-        <p aria-live="polite">{msg}</p>
       </main>
     );
 
-  return (
-    <main dir="rtl" className="adm">
-      <style>{css}</style>
-      <div className="bar">
-        <h1>لوحة التحكم</h1>
-        <button className="btn gray" onClick={() => db.auth.signOut()}>خروج</button>
+  const LangSwitch = (
+    <div className="seg">
+      <button className={lang === "ar" ? "on" : ""} onClick={() => setLang("ar")}>العربية</button>
+      <button className={lang === "en" ? "on" : ""} onClick={() => setLang("en")}>English</button>
+    </div>
+  );
+  const SaveBar = (
+    <div className="save">
+      <button className="btn" disabled={busy} onClick={save}>{busy ? "جارٍ الحفظ…" : "💾 حفظ التعديلات"}</button>
+      <span className="msg">{msg}</span>
+    </div>
+  );
+  const HeadingEditor = ({ sec }: { sec: "services" | "results" | "work" }): ReactNode => {
+    const h = heading(sec);
+    return (
+      <div className="panel">
+        <h3>عنوان القسم</h3>
+        <div className="grid2">
+          <Field label="العنوان الصغير" value={h.eyebrow} onChange={(v) => setHeading(sec, { eyebrow: v })} />
+          <Field label="العنوان الرئيسي (سطر لكل جزء)" value={h.lines.join("\n")} long onChange={(v) => setHeading(sec, { lines: v.split("\n") })} />
+        </div>
+        {h.description !== undefined && <Field label="الوصف" long value={h.description} onChange={(v) => setHeading(sec, { description: v })} />}
       </div>
-      {!isAdmin ? <p>هذا الحساب ليس له صلاحية المدير.</p> : (
-        <>
-          <div className="tabs">
-            {([["orders", `الطلبات (${orders.length})`], ["settings", "بيانات الموقع"], ["content", "تعديل الأقسام"], ["projects", `المشاريع (${projects.length})`]] as const).map(([k, l]) => (
-              <button key={k} className={tab === k ? "on" : ""} onClick={() => { setTab(k); setMsg(""); }}>{l}</button>
-            ))}
-          </div>
-          {msg && <p aria-live="polite" className="card">{msg}</p>}
+    );
+  };
 
-          {tab === "orders" && (
-            <>
-              <button className="btn" onClick={loadOrders}>تحديث</button>
-              {orders.length === 0 ? <p>لا توجد طلبات بعد.</p> : orders.map((o) => (
-                <article key={o.id} className="card">
-                  <div className="bar">
-                    <strong>{o.name}{o.company ? ` — ${o.company}` : ""}</strong>
-                    <small>{new Date(o.created_at).toLocaleString("ar-EG")}</small>
-                  </div>
-                  <p>📞 <a dir="ltr" href={`https://wa.me/${o.phone.replace(/\D/g, "")}`} target="_blank" rel="noreferrer">{o.phone}</a> · {o.service}</p>
-                  <p style={{ whiteSpace: "pre-wrap" }}>{o.message}</p>
-                  <div className="bar" style={{ justifyContent: "flex-start" }}>
-                    <select value={o.status} onChange={(e) => setStatus(o.id, e.target.value)} style={{ width: "auto", margin: 0 }}>
-                      {Object.entries(STATUS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-                    </select>
-                    <button className="btn red" onClick={() => removeOrder(o.id)}>حذف</button>
-                  </div>
-                </article>
-              ))}
-            </>
-          )}
+  const brandVals = {
+    siteName: brand.name, email: brand.email, phone: brand.phone, whatsapp: brand.whatsappHref.replace(/\D/g, ""),
+    address: dict("ar").contact.address,
+    ...Object.fromEntries(socials.filter((s) => s.id !== "whatsapp").map((s) => [s.id, s.href])),
+  } as Record<string, string>;
+  const SET_FIELDS: [keyof SiteSettings, string, boolean?][] = [
+    ["siteName", "اسم الموقع"], ["email", "البريد الإلكتروني", true], ["phone", "رقم الهاتف", true],
+    ["whatsapp", "رقم الواتساب (مثال 201207312268)", true], ["address", "العنوان"],
+    ["instagram", "إنستجرام", true], ["facebook", "فيسبوك", true], ["linkedin", "لينكدإن", true], ["x", "X (تويتر)", true], ["youtube", "يوتيوب", true],
+  ];
 
-          {tab === "settings" && (
-            <form onSubmit={saveSettings} key={JSON.stringify(settings)} className="card">
-              <p style={{ marginTop: 0 }}>اترك الحقل فاضي لاستخدام القيمة الحالية في الموقع.</p>
-              <div className="two">
-                {FIELDS.map(([k, label, dir]) => (
-                  <label key={k}>{label}<input name={k} defaultValue={String(settings[k] ?? "")} dir={dir} /></label>
-                ))}
-              </div>
-              <button className="btn" disabled={busy} type="submit" style={{ width: "100%" }}>{busy ? "جارٍ الحفظ…" : "حفظ"}</button>
-            </form>
-          )}
+  return (
+    <main dir="rtl" className="ad">
+      <style>{css}</style>
+      <aside>
+        <div className="logo">لوحة التحكم</div>
+        {NAV.map(([k, l, i]) => (
+          <button key={k} className={page === k ? "on" : ""} onClick={() => { setPage(k); setMsg(""); }}>
+            <span>{i}</span>{l}{k === "orders" && orders.length ? ` (${orders.length})` : ""}
+          </button>
+        ))}
+        <button className="out" onClick={() => window.open("/ar/index.html", "_blank")}>🌐 عرض الموقع</button>
+        <button onClick={() => db.auth.signOut()}>🚪 خروج</button>
+      </aside>
 
-          {tab === "content" && (
-            <div className="card">
-              <div className="two">
-                <label>القسم<select value={section} onChange={(e) => setSection(e.target.value)}>{SECTIONS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select></label>
-                {!section.startsWith("#") && <label>اللغة<select value={lang} onChange={(e) => setLang(e.target.value as "ar" | "en")}><option value="ar">العربية</option><option value="en">English</option></select></label>}
-              </div>
-              {draft !== null && <Edit k="" v={draft} on={setDraft} />}
-              <button className="btn" disabled={busy} onClick={saveContent} style={{ width: "100%", position: "sticky", bottom: 10 }}>{busy ? "جارٍ الحفظ…" : "حفظ التعديلات"}</button>
-            </div>
-          )}
-
-          {tab === "projects" && (
-            <>
-              <form onSubmit={addProject} className="card">
-                <strong>رفع مشروع جديد (لتعديل المشاريع الموجودة استخدم "تعديل الأقسام")</strong>
-                <div className="two" style={{ marginTop: 10 }}>
-                  <label>اسم المشروع<input name="title" required /></label>
-                  <label>القسم<select name="category">{Object.entries(CATS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></label>
-                  <label>الصورة من جهازك<input name="file" type="file" accept="image/*" required /></label>
-                  <label>رابط (اختياري)<input name="link" type="url" dir="ltr" placeholder="https://" /></label>
-                  <label>الترتيب (رقم أصغر = يظهر أولاً)<input name="sort" type="number" defaultValue={0} /></label>
+      <div className="main">
+        {page === "orders" && (
+          <>
+            <div className="head"><h1>الطلبات</h1><button className="btn light" onClick={loadOrders}>تحديث</button></div>
+            {orders.length === 0 ? <div className="panel">لا توجد طلبات بعد.</div> : orders.map((o) => (
+              <div key={o.id} className="panel">
+                <div className="head" style={{ marginBottom: 6 }}>
+                  <strong>{o.name}{o.company ? ` — ${o.company}` : ""}</strong>
+                  <small>{new Date(o.created_at).toLocaleString("ar-EG")}</small>
                 </div>
-                <button className="btn" disabled={busy} type="submit" style={{ width: "100%" }}>{busy ? "جارٍ الرفع…" : "رفع"}</button>
-              </form>
-              <div className="grid">
-                {projects.map((p) => (
-                  <div key={p.id} className="card" style={{ margin: 0 }}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={p.image} alt={p.title} />
-                    <p style={{ margin: "8px 0" }}><strong>{p.title}</strong><br /><small>{CATS[p.category] ?? p.category}</small></p>
-                    <button className="btn red" style={{ width: "100%" }} onClick={() => removeProject(p.id)}>حذف</button>
-                  </div>
+                <p>📞 <a dir="ltr" href={`https://wa.me/${o.phone.replace(/\D/g, "")}`} target="_blank" rel="noreferrer">{o.phone}</a> · {o.service}</p>
+                <p style={{ whiteSpace: "pre-wrap" }}>{o.message}</p>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <select value={o.status} onChange={(e) => setStatus(o.id, e.target.value)} style={{ width: "auto", marginTop: 0 }}>
+                    {Object.entries(STATUS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                  </select>
+                  <button className="btn red" onClick={() => removeOrder(o.id)}>حذف</button>
+                </div>
+              </div>
+            ))}
+          </>
+        )}
+
+        {page === "settings" && (
+          <>
+            <div className="head"><h1>بيانات الموقع</h1></div>
+            <div className="panel">
+              <div className="grid2">
+                {SET_FIELDS.map(([k, label, ltr]) => (
+                  <Field key={k} label={label} ltr={ltr} value={(st[k] as string | undefined) ?? brandVals[k] ?? ""} onChange={(v) => patch({ [k]: v })} />
                 ))}
               </div>
-            </>
-          )}
-        </>
-      )}
+            </div>
+            {SaveBar}
+          </>
+        )}
+
+        {page === "services" && (
+          <>
+            <div className="head"><h1>خدماتنا</h1>{LangSwitch}</div>
+            <HeadingEditor sec="services" />
+            <div className="cards">
+              {services.map((s, i) => {
+                const t = s.text[lang] ?? { title: "", description: "", tags: [] };
+                const setT = (p: Partial<typeof t>) => setService(i, { ...s, text: { ...s.text, [lang]: { ...t, ...p } } });
+                return (
+                  <div key={i} className="item">
+                    <Thumb src={s.image} onPick={(image) => setService(i, { ...s, image })} />
+                    <Field label="اسم الخدمة" value={t.title} onChange={(title) => setT({ title })} />
+                    <Field label="الوصف" long value={t.description} onChange={(description) => setT({ description })} />
+                    <Field label="وسوم (افصل بفاصلة)" value={(t.tags ?? []).join("، ")} onChange={(v) => setT({ tags: v.split(/[،,]/).map((x) => x.trim()).filter(Boolean) })} />
+                    <button className="btn red" onClick={() => patch({ servicesList: services.filter((_, n) => n !== i) })}>حذف الخدمة</button>
+                  </div>
+                );
+              })}
+            </div>
+            <p><button className="btn light" onClick={() => patch({ servicesList: [...services, { image: serviceArtwork[0], text: { ar: { title: "خدمة جديدة", description: "" }, en: { title: "New service", description: "" } } }] })}>➕ إضافة خدمة</button></p>
+            {SaveBar}
+          </>
+        )}
+
+        {page === "results" && (
+          <>
+            <div className="head"><h1>نتائج العملاء</h1>{LangSwitch}</div>
+            <HeadingEditor sec="results" />
+            <div className="cards">
+              {results.map((r, i) => {
+                const t = r.text[lang] ?? { title: "", subtitle: "", market: "", alt: "", summary: "" };
+                const setT = (p: Partial<typeof t>) => setResult(i, { ...r, text: { ...r.text, [lang]: { ...t, ...p } } });
+                const setM = (k: keyof ResultEdit["metrics"], v: string) => setResult(i, { ...r, metrics: { ...r.metrics, [k]: v } });
+                return (
+                  <div key={r.id} className="item">
+                    <Thumb src={r.image} onPick={(image) => setResult(i, { ...r, image })} />
+                    <Field label="العنوان" value={t.title} onChange={(title) => setT({ title })} />
+                    <Field label="العنوان الفرعي" value={t.subtitle} onChange={(subtitle) => setT({ subtitle })} />
+                    <Field label="الدولة / السوق" value={t.market} onChange={(market) => setT({ market })} />
+                    <Field label="الملخص" long value={t.summary} onChange={(summary) => setT({ summary })} />
+                    <div className="grid2">
+                      <Field label="المبيعات" ltr value={r.metrics.sales} onChange={(v) => setM("sales", v)} />
+                      <Field label="نسبة زيادة المبيعات" ltr value={r.metrics.salesDelta} onChange={(v) => setM("salesDelta", v)} />
+                      <Field label="الطلبات" ltr value={r.metrics.orders} onChange={(v) => setM("orders", v)} />
+                      <Field label="نسبة زيادة الطلبات" ltr value={r.metrics.ordersDelta} onChange={(v) => setM("ordersDelta", v)} />
+                      <Field label="معدل التحويل" ltr value={r.metrics.conversion} onChange={(v) => setM("conversion", v)} />
+                      <Field label="الفترة (أيام)" ltr value={r.metrics.period} onChange={(v) => setM("period", v)} />
+                    </div>
+                    <button className="btn red" onClick={() => patch({ resultsList: results.filter((_, n) => n !== i) })}>حذف النتيجة</button>
+                  </div>
+                );
+              })}
+            </div>
+            <p><button className="btn light" onClick={() => patch({ resultsList: [...results, { id: `custom-${Date.now()}`, image: "", metrics: { sales: "", orders: "", conversion: "", period: "30" }, text: { ar: { title: "نتيجة جديدة", subtitle: "", market: "", alt: "", summary: "" }, en: { title: "New result", subtitle: "", market: "", alt: "", summary: "" } } }] })}>➕ إضافة نتيجة</button></p>
+            {SaveBar}
+          </>
+        )}
+
+        {page === "work" && (
+          <>
+            <div className="head"><h1>أعمال مختارة</h1>{LangSwitch}</div>
+            <HeadingEditor sec="work" />
+            <h3>المشاريع الحالية</h3>
+            <div className="cards">
+              {works.map((w, i) => (
+                <div key={w.slug} className={`item${w.hidden ? " muted" : ""}`}>
+                  <Thumb src={w.image} onPick={(image) => setWork(i, { ...w, image })} />
+                  <Field label="اسم المشروع" value={w.text?.[lang]?.title} onChange={(title) => setWork(i, { ...w, text: { ...w.text, [lang]: { title } } })} />
+                  <label>القسم<select value={w.categoryId} onChange={(e) => setWork(i, { ...w, categoryId: e.target.value })}>{Object.entries(CATS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></label>
+                  <button className="btn light" onClick={() => setWork(i, { ...w, hidden: !w.hidden })}>{w.hidden ? "👁️ إظهار في الموقع" : "🙈 إخفاء من الموقع"}</button>
+                </div>
+              ))}
+            </div>
+            {SaveBar}
+
+            <h3 style={{ marginTop: 24 }}>مشاريع جديدة</h3>
+            <form onSubmit={addProject} className="panel">
+              <div className="grid2">
+                <label>اسم المشروع<input name="title" required /></label>
+                <label>القسم<select name="category">{Object.entries(CATS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></label>
+                <label>الصورة من جهازك<input name="file" type="file" accept="image/*" required /></label>
+                <label>رابط (اختياري)<input name="link" type="url" dir="ltr" placeholder="https://" /></label>
+              </div>
+              <button className="btn" disabled={busy} type="submit">➕ إضافة المشروع</button>
+            </form>
+            <div className="cards">
+              {projects.map((p) => (
+                <div key={p.id} className="item">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <div className="thumb"><img src={p.image} alt={p.title} /></div>
+                  <p style={{ margin: "0 0 10px" }}><strong>{p.title}</strong> · <small>{CATS[p.category] ?? p.category}</small></p>
+                  <button className="btn red" onClick={() => removeProject(p.id)}>حذف</button>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
     </main>
   );
 }
