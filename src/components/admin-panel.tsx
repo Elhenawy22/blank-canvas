@@ -28,7 +28,7 @@ const NAV: [Page, string, string][] = [
 ];
 
 /** Shrinks a picture from the computer to a compact JPEG so it can be stored directly. */
-function toDataUrl(file: File, max = 1400): Promise<string> {
+function toDataUrl(file: File, max = 1200): Promise<string> {
   return new Promise((res, rej) => {
     const img = new Image();
     img.onload = () => {
@@ -40,7 +40,13 @@ function toDataUrl(file: File, max = 1400): Promise<string> {
       res(c.toDataURL("image/jpeg", 0.82));
       URL.revokeObjectURL(img.src);
     };
-    img.onerror = rej;
+    img.onerror = () => {
+      // Some phone formats can't be drawn; fall back to the raw file.
+      const r = new FileReader();
+      r.onload = () => res(String(r.result));
+      r.onerror = rej;
+      r.readAsDataURL(file);
+    };
     img.src = URL.createObjectURL(file);
   });
 }
@@ -94,7 +100,11 @@ function Thumb({ src, onPick }: { src: string; onPick: (v: string) => void }) {
       {src ? <img src={src} alt="" /> : null}
       <label>
         📷 تغيير الصورة
-        <input type="file" accept="image/*" onChange={async (e) => { const f = e.target.files?.[0]; if (f) onPick(await toDataUrl(f)); }} />
+        <input type="file" accept="image/*" onChange={async (e) => {
+          const input = e.currentTarget; const f = input.files?.[0]; if (!f) return;
+          try { onPick(await toDataUrl(f)); } catch { alert("تعذّر قراءة الصورة، جرّب صورة تانية (JPG أو PNG)."); }
+          input.value = "";
+        }} />
       </label>
     </div>
   );
