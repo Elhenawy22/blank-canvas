@@ -7,6 +7,7 @@ import { ArrowIcon } from "@/components/icons";
 import RevealWords from "@/components/motion/reveal-words";
 import type { Dictionary } from "@/i18n/dictionaries";
 import { useDict, useLoc, useSettings } from "@/lib/site-settings";
+import { localizedPath } from "@/i18n/config";
 import { ensureGsap, gsap, prefersReducedMotion, EASE } from "@/lib/motion";
 
 /**
@@ -71,7 +72,7 @@ export default function Services({ dictionary: raw }: { dictionary: Dictionary }
           <a
             aria-label={`${service.title}${services.cardAriaSuffix}`}
             className={`service-card ${styles[index % styles.length]}`}
-            href="#contact"
+            href={localizedPath(loc, `/services/${index + 1}`)}
             key={index}
           >
             <Image
