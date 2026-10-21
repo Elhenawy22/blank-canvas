@@ -12,18 +12,18 @@ import { getDictionary } from "@/i18n/dictionaries";
 import { db } from "@/lib/db";
 import { useDict, useSettings } from "@/lib/site-settings";
 
-type Item = { id: string; title: string; image: string; link: string | null };
+type Item = { id: string; title: string; image: string; link: string | null; poster: string | null };
 
 export default function ServicePage({ locale, n }: { locale: Locale; n: number }) {
   const dictionary = useDict(getDictionary(locale));
   const settings = useSettings();
   const list = settings.servicesList;
   const s = list
-    ? { ...(list[n - 1]?.text[locale] ?? list[n - 1]?.text.ar ?? { title: "", description: "" }), image: list[n - 1]?.image }
+    ? { ...(list[n - 1]?.text[locale] ?? list[n - 1]?.text.ar ?? { title: "", description: "" }), image: list[n - 1]?.image, poster: list[n - 1]?.poster }
     : { ...dictionary.services.items[n - 1], image: serviceArtwork[(n - 1) % serviceArtwork.length] };
   const [items, setItems] = useState<Item[]>([]);
   useEffect(() => {
-    db.from("cms_projects").select("id,title,image,link").eq("category", `service-${n}`).order("sort").order("created_at", { ascending: false })
+    db.from("cms_projects").select("id,title,image,link,poster").eq("category", `service-${n}`).order("sort").order("created_at", { ascending: false })
       .then(({ data }) => setItems(data ?? []));
   }, [n]);
   const ar = locale === "ar";
@@ -47,7 +47,7 @@ export default function ServicePage({ locale, n }: { locale: Locale; n: number }
           {s?.image ? (
             <figure className="project-hero__visual">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <Media src={s.image} />
+              <Media src={s.image} poster={"poster" in s ? s.poster : undefined} />
             </figure>
           ) : null}
         </section>
@@ -58,7 +58,7 @@ export default function ServicePage({ locale, n }: { locale: Locale; n: number }
                 <a className="project-card__link" href={p.link || p.image} target="_blank" rel="noreferrer">
                   <div className="project-card__image">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <Media alt={p.title} src={p.image} />
+                    <Media alt={p.title} poster={p.poster ?? undefined} src={p.image} />
                   </div>
                   <div className="project-card__info"><h3>{p.title}</h3></div>
                 </a>

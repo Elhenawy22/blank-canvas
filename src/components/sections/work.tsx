@@ -32,15 +32,15 @@ export default function Work({ dictionary: raw, locale }: { dictionary: Dictiona
   const projects = baseProjects
     .map((p) => {
       const e = edits?.find((x) => x.slug === p.slug);
-      return e ? { ...p, image: e.image || p.image, categoryId: (e.categoryId || p.categoryId) as typeof p.categoryId, hidden: e.hidden, title: e.text?.[locale]?.title } : { ...p, hidden: false, title: undefined };
+      return e ? { ...p, poster: e.poster, image: e.image || p.image, categoryId: (e.categoryId || p.categoryId) as typeof p.categoryId, hidden: e.hidden, title: e.text?.[locale]?.title } : { ...p, poster: undefined as string | undefined, hidden: false, title: undefined };
     })
     .filter((p) => !p.hidden);
   const work = dictionary.work;
   const [activeCategory, setActiveCategory] = useState<CategoryId>("all");
   const sectionRef = useRef<HTMLElement>(null);
-  const [extra, setExtra] = useState<{ id: string; title: string; category: string; image: string; link: string | null }[]>([]);
+  const [extra, setExtra] = useState<{ id: string; title: string; category: string; image: string; link: string | null; poster: string | null }[]>([]);
   useEffect(() => {
-    db.from("cms_projects").select("id,title,category,image,link").order("sort").order("created_at", { ascending: false })
+    db.from("cms_projects").select("id,title,category,image,link,poster").order("sort").order("created_at", { ascending: false })
       .then(({ data }) => setExtra((data ?? []).filter((p) => !p.category.startsWith("service-"))));
   }, []);
   const visibleExtra = activeCategory === "all" ? extra : extra.filter((p) => p.category === activeCategory);
@@ -152,7 +152,7 @@ export default function Work({ dictionary: raw, locale }: { dictionary: Dictiona
             >
               <a className="project-card__link" href={localizedPath(locale, `/projects/${project.slug}`)}>
                 <div className="project-card__image">
-                  {isVideo(project.image) ? <Media alt={alt} src={project.image} /> : (
+                  {isVideo(project.image) ? <Media alt={alt} poster={project.poster} src={project.image} /> : (
                   <Image alt={alt} fill sizes="(max-width: 700px) 100vw, (max-width: 1100px) 50vw, 45vw" src={project.image} />
                   )}
                   <span className="project-card__open" aria-hidden="true">↗</span>
@@ -173,7 +173,7 @@ export default function Work({ dictionary: raw, locale }: { dictionary: Dictiona
             <a className="project-card__link" href={p.link || p.image} target="_blank" rel="noreferrer">
               <div className="project-card__image">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <Media alt={p.title} src={p.image} />
+                <Media alt={p.title} poster={p.poster ?? undefined} src={p.image} />
                 <span className="project-card__open" aria-hidden="true">↗</span>
               </div>
               <div className="project-card__info">

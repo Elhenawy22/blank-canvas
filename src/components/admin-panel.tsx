@@ -1,5 +1,5 @@
 "use client";
-import Media from "@/components/media";
+import Media, { isVideo } from "@/components/media";
 
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import type { Session } from "@supabase/supabase-js";
@@ -12,7 +12,7 @@ import { brand, socials } from "@/data/brand";
 import { serviceArtwork } from "@/components/sections/services";
 
 type Order = { id: string; name: string; phone: string; company: string | null; service: string; message: string; status: string; created_at: string };
-type Proj = { id: string; title: string; category: string; image: string; link: string | null; sort: number };
+type Proj = { id: string; title: string; category: string; image: string; link: string | null; sort: number; poster?: string | null };
 type Lang = "ar" | "en";
 type Page = "orders" | "settings" | "services" | "results" | "work" | "spages" | "texts";
 
@@ -95,6 +95,7 @@ const css = `
 .ad .thumb video,.ad .thumb img{width:100%;height:100%;object-fit:cover;display:block}
 .ad .thumb label{position:absolute;bottom:8px;inset-inline-start:8px;margin:0;background:rgba(0,0,0,.7);color:#fff;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:13px}
 .ad .thumb input{display:none}
+.ad .thumb label.poster{inset-inline-start:auto;inset-inline-end:8px}
 .ad .seg{display:inline-flex;background:#eceef4;border-radius:9px;padding:3px}
 .ad .seg button{border:0;background:transparent;padding:7px 14px;border-radius:7px;font:inherit;cursor:pointer;color:#1b1d2a}
 .ad .seg button.on{background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.1)}
@@ -111,11 +112,24 @@ const css = `
  .ad .grid2{grid-template-columns:1fr}
 }`;
 
-function Thumb({ src, onPick }: { src: string; onPick: (v: string) => void }) {
+function PosterPick({ onPick }: { onPick: (v: string) => void }) {
+  return (
+    <label className="poster">
+      🖼️ صورة الغلاف
+      <input type="file" accept="image/*" onChange={async (e) => {
+        const input = e.currentTarget; const f = input.files?.[0]; if (!f) return;
+        try { onPick(await toDataUrl(f)); } catch { alert("تعذّر قراءة الصورة."); }
+        input.value = "";
+      }} />
+    </label>
+  );
+}
+
+function Thumb({ src, onPick, poster, onPoster }: { src: string; onPick: (v: string) => void; poster?: string; onPoster?: (v: string) => void }) {
   return (
     <div className="thumb">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      {src ? <Media src={src} /> : null}
+      {src ? <Media src={src} poster={poster} /> : null}
+      {isVideo(src) && onPoster ? <PosterPick onPick={onPoster} /> : null}
       <label>
         📷 تغيير الصورة / الفيديو
         <input type="file" accept="image/*,video/*" onChange={async (e) => {
@@ -223,7 +237,7 @@ export default function AdminPanel() {
   const works: ProjectEdit[] = baseProjects.map((p) => {
     const e = st.projects?.find((x) => x.slug === p.slug);
     return {
-      slug: p.slug, image: e?.image || p.image, categoryId: e?.categoryId || p.categoryId, hidden: e?.hidden ?? false,
+      slug: p.slug, image: e?.image || p.image, poster: e?.poster, categoryId: e?.categoryId || p.categoryId, hidden: e?.hidden ?? false,
       text: { ar: { title: e?.text?.ar?.title || dict("ar").work.projects[p.slug]?.title }, en: { title: e?.text?.en?.title || dict("en").work.projects[p.slug]?.title } },
     };
   });
@@ -389,7 +403,7 @@ export default function AdminPanel() {
                 const setT = (p: Partial<typeof t>) => setService(i, { ...s, text: { ...s.text, [lang]: { ...t, ...p } } });
                 return (
                   <div key={i} className="item">
-                    <Thumb src={s.image} onPick={(image) => setService(i, { ...s, image })} />
+                    <Thumb src={s.image} poster={s.poster} onPoster={(poster) => setService(i, { ...s, poster })} onPick={(image) => setService(i, { ...s, image })} />
                     <Field label="اسم الخدمة" value={t.title} onChange={(title) => setT({ title })} />
                     <Field label="الوصف" long value={t.description} onChange={(description) => setT({ description })} />
                     <Field label="وسوم (افصل بفاصلة)" value={(t.tags ?? []).join("، ")} onChange={(v) => setT({ tags: v.split(/[،,]/).map((x) => x.trim()).filter(Boolean) })} />
@@ -445,7 +459,7 @@ export default function AdminPanel() {
             <div className="cards">
               {works.map((w, i) => (
                 <div key={w.slug} className={`item${w.hidden ? " muted" : ""}`}>
-                  <Thumb src={w.image} onPick={(image) => setWork(i, { ...w, image })} />
+                  <Thumb src={w.image} poster={w.poster} onPoster={(poster) => setWork(i, { ...w, poster })} onPick={(image) => setWork(i, { ...w, image })} />
                   <Field label="اسم المشروع" value={w.text?.[lang]?.title} onChange={(title) => setWork(i, { ...w, text: { ...w.text, [lang]: { title } } })} />
                   <label>القسم<select value={w.categoryId} onChange={(e) => setWork(i, { ...w, categoryId: e.target.value })}>{Object.entries(CATS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></label>
                   <button className="btn light" onClick={() => setWork(i, { ...w, hidden: !w.hidden })}>{w.hidden ? "👁️ إظهار في الموقع" : "🙈 إخفاء من الموقع"}</button>
@@ -468,7 +482,8 @@ export default function AdminPanel() {
               {projects.filter((p) => !p.category.startsWith("service-")).map((p) => (
                 <div key={p.id} className="item">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <div className="thumb"><Media src={p.image} alt={p.title} /></div>
+                  <div className="thumb"><Media src={p.image} poster={p.poster ?? undefined} alt={p.title} />
+                    {isVideo(p.image) ? <PosterPick onPick={async (poster) => { const { error } = await db.from("cms_projects").update({ poster }).eq("id", p.id); setMsg(error ? "حصل خطأ: " + error.message : "✓ تم حفظ الغلاف"); loadProjects(); }} /> : null}</div>
                   <p style={{ margin: "0 0 10px" }}><strong>{p.title}</strong> · <small>{CATS[p.category] ?? svcName(p.category)}</small></p>
                   <button className="btn red" onClick={() => removeProject(p.id)}>حذف</button>
                 </div>
@@ -516,7 +531,8 @@ export default function AdminPanel() {
               {projects.filter((p) => p.category.startsWith("service-")).map((p) => (
                 <div key={p.id} className="item">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <div className="thumb"><Media src={p.image} alt={p.title} /></div>
+                  <div className="thumb"><Media src={p.image} poster={p.poster ?? undefined} alt={p.title} />
+                    {isVideo(p.image) ? <PosterPick onPick={async (poster) => { const { error } = await db.from("cms_projects").update({ poster }).eq("id", p.id); setMsg(error ? "حصل خطأ: " + error.message : "✓ تم حفظ الغلاف"); loadProjects(); }} /> : null}</div>
                   <p style={{ margin: "0 0 10px" }}><strong>{p.title}</strong> · <small>{svcName(p.category)}</small></p>
                   <button className="btn red" onClick={() => removeProject(p.id)}>حذف</button>
                 </div>

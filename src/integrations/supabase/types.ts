@@ -22,6 +22,7 @@ export type Database = {
           id: string
           image: string
           link: string | null
+          poster: string | null
           sort: number
           title: string
         }
@@ -32,6 +33,7 @@ export type Database = {
           id?: string
           image: string
           link?: string | null
+          poster?: string | null
           sort?: number
           title: string
         }
@@ -42,6 +44,7 @@ export type Database = {
           id?: string
           image?: string
           link?: string | null
+          poster?: string | null
           sort?: number
           title?: string
         }

@@ -26,7 +26,7 @@ export type SiteSettings = {
 
 type L = "ar" | "en";
 export type ServiceText = { title: string; description: string; tags?: string[] };
-export type ServiceEdit = { image: string; text: Partial<Record<L, ServiceText>> };
+export type ServiceEdit = { image: string; poster?: string; text: Partial<Record<L, ServiceText>> };
 export type CaseText = { title: string; subtitle: string; market: string; alt: string; summary: string };
 export type ResultEdit = {
   id: string;
@@ -34,7 +34,7 @@ export type ResultEdit = {
   metrics: { sales: string; salesDelta?: string; orders: string; ordersDelta?: string; conversion: string; conversionDelta?: string; aov?: string; period: string };
   text: Partial<Record<L, CaseText>>;
 };
-export type ProjectEdit = { slug: string; image: string; categoryId: string; hidden: boolean; text?: Partial<Record<L, { title: string }>> };
+export type ProjectEdit = { slug: string; image: string; poster?: string; categoryId: string; hidden: boolean; text?: Partial<Record<L, { title: string }>> };
 
 let cache: SiteSettings | null = null;
 let pending: Promise<SiteSettings> | null = null;

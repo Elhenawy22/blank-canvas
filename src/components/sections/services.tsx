@@ -23,8 +23,8 @@ export default function Services({ dictionary: raw }: { dictionary: Dictionary }
   const services = {
     ...dictionary.services,
     items: list
-      ? list.map((i) => ({ ...(i.text[loc] ?? i.text.ar ?? { title: "", description: "" }), image: i.image }))
-      : dictionary.services.items.map((i, n) => ({ ...i, image: serviceArtwork[n % serviceArtwork.length] })),
+      ? list.map((i) => ({ ...(i.text[loc] ?? i.text.ar ?? { title: "", description: "" }), image: i.image, poster: i.poster as string | undefined }))
+      : dictionary.services.items.map((i, n) => ({ ...i, image: serviceArtwork[n % serviceArtwork.length], poster: undefined as string | undefined })),
   };
   const sectionRef = useRef<HTMLElement>(null);
 
@@ -77,7 +77,7 @@ export default function Services({ dictionary: raw }: { dictionary: Dictionary }
             key={index}
           >
             {isVideo(service.image) ? (
-              <Media className="service-card__art" src={service.image} />
+              <Media className="service-card__art" poster={service.poster} src={service.image} />
             ) : (
               <Image alt="" aria-hidden="true" className="service-card__art" fill sizes="(max-width: 700px) 100vw, 50vw" src={service.image} />
             )}

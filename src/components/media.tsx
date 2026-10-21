@@ -9,9 +9,9 @@ export const isVideo = (src?: string | null) =>
 const fill: CSSProperties = { position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" };
 
 /** Renders an image or an autoplaying muted looping video. */
-export default function Media({ src, alt = "", className, style }: { src: string; alt?: string; className?: string; style?: CSSProperties }) {
+export default function Media({ src, alt = "", className, style, poster }: { src: string; poster?: string; alt?: string; className?: string; style?: CSSProperties }) {
   const s = { ...fill, ...style };
-  if (isVideo(src)) return <video className={className} style={s} src={src} autoPlay muted loop playsInline preload="metadata" aria-label={alt || undefined} />;
+  if (isVideo(src)) return <video className={className} style={s} src={src} poster={poster} autoPlay muted loop playsInline preload="metadata" aria-label={alt || undefined} />;
   // eslint-disable-next-line @next/next/no-img-element
   return <img className={className} style={s} src={src} alt={alt} />;
 }
