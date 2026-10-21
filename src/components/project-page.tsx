@@ -121,7 +121,7 @@ export default function ProjectPage({
           <p className="eyebrow">{pageCopy.nextProject}</p>
           <a
             className="project-next__link"
-            href={`${homeHref === "/" ? "" : homeHref}${projectPath(nextProject.slug)}`}
+            href={localizedPath(locale, projectPath(nextProject.slug))}
           >
             <span>{nextCopy.title}</span>
             <ArrowIcon />
