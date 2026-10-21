@@ -13,7 +13,7 @@ import { serviceArtwork } from "@/components/sections/services";
 type Order = { id: string; name: string; phone: string; company: string | null; service: string; message: string; status: string; created_at: string };
 type Proj = { id: string; title: string; category: string; image: string; link: string | null; sort: number };
 type Lang = "ar" | "en";
-type Page = "orders" | "settings" | "services" | "results" | "work" | "spages";
+type Page = "orders" | "settings" | "services" | "results" | "work" | "spages" | "texts";
 
 const STATUS: Record<string, string> = { new: "جديد", contacted: "تم التواصل", done: "مكتمل" };
 const CATS: Record<string, string> = { branding: "هوية بصرية", social: "سوشيال ميديا", dev: "برمجة وتصميم", photo: "تصوير", video: "فيديو" };
@@ -24,6 +24,7 @@ const NAV: [Page, string, string][] = [
   ["results", "نتائج العملاء", "📈"],
   ["work", "أعمال مختارة", "🖼️"],
   ["spages", "صفحات الخدمات", "🗂️"],
+  ["texts", "كل نصوص الموقع", "✏️"],
 ];
 
 /** Shrinks a picture from the computer to a compact JPEG so it can be stored directly. */
@@ -108,6 +109,27 @@ function Field({ label, value, onChange, long, ltr }: { label: string; value: st
 }
 
 const dict = (l: Lang) => getDictionary(l);
+const TEXT_SECS: [string, string][] = [
+  ["nav", "الهيدر والقائمة (الهمبرجر)"], ["hero", "الواجهة الرئيسية"], ["services", "ماذا نقدم"],
+  ["showcase", "خدماتنا وأثرها"], ["milestones", "الأرقام والإنجازات"], ["principles", "الرؤية والرسالة"],
+  ["marquee", "الشريط المتحرك"], ["results", "نتائج العملاء"], ["work", "أعمال مختارة"],
+  ["about", "صفحة من نحن"], ["contact", "نموذج الطلب"], ["footer", "الفوتر"], ["language", "زر اللغة"],
+  ["meta", "عنوان الموقع في المتصفح"], ["notFound", "صفحة غير موجودة"],
+];
+const SKIP = /aria|alt$|hint|href|status|missing|skip|label$|^id$|slug|image|src/i;
+function leaves(o: unknown, path: (string | number)[] = [], out: [(string | number)[], string][] = []) {
+  if (typeof o === "string") { if (!path.some((k) => typeof k === "string" && SKIP.test(k)) || path[path.length - 1] === "label") out.push([path, o]); }
+  else if (Array.isArray(o)) o.forEach((v, i) => leaves(v, [...path, i], out));
+  else if (o && typeof o === "object") Object.entries(o).forEach(([k, v]) => leaves(v, [...path, k], out));
+  return out;
+}
+function setIn(o: unknown, path: (string | number)[], v: string): unknown {
+  if (!path.length) return v;
+  const [k, ...r] = path;
+  const c: Record<string | number, unknown> = Array.isArray(o) ? [...o] as never : { ...(o as object) };
+  c[k] = setIn(c[k], r, v);
+  return c;
+}
 type Heading = { eyebrow: string; lines: string[]; description?: string };
 
 export default function AdminPanel() {
@@ -120,6 +142,7 @@ export default function AdminPanel() {
   const [st, setSt] = useState<SiteSettings>({});
   const [projects, setProjects] = useState<Proj[]>([]);
   const [msg, setMsg] = useState("");
+  const [textSec, setTextSec] = useState("nav");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -424,6 +447,29 @@ export default function AdminPanel() {
             </div>
           </>
         )}
+        {page === "texts" && (() => {
+          const sec = textSec;
+          const base = (dict(lang) as unknown as Record<string, unknown>)[sec];
+          const cur = deepMerge(base, st.content?.[lang]?.[sec]);
+          const orig = leaves(base);
+          return (
+            <>
+              <div className="head"><h1>كل نصوص الموقع</h1>
+                <div style={{ display: "flex", gap: 6 }}>{(["ar", "en"] as Lang[]).map((l) => <button key={l} className={"btn" + (lang === l ? "" : " ghost")} onClick={() => setLang(l)}>{l === "ar" ? "عربي" : "English"}</button>)}</div>
+              </div>
+              <div className="panel">
+                <label>اختر القسم<select value={sec} onChange={(e) => setTextSec(e.target.value)}>{TEXT_SECS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select></label>
+                <p><small>كل خانة مكتوب فوقها النص الأصلي. عدّل اللي عايزه واضغط حفظ.</small></p>
+                {leaves(cur).map(([path, v], i) => {
+                  const o = orig.find(([p]) => p.join(".") === path.join("."))?.[1] ?? "";
+                  return <Field key={path.join(".") + i} long={v.length > 70} label={"الأصلي: " + (o.length > 60 ? o.slice(0, 60) + "…" : o)} value={v}
+                    onChange={(nv) => patch({ content: { ...st.content, [lang]: { ...st.content?.[lang], [sec]: setIn(cur, path, nv) } } })} />;
+                })}
+              </div>
+              {SaveBar}
+            </>
+          );
+        })()}
         {page === "spages" && (
           <>
             <h3>صفحات الخدمات</h3>
