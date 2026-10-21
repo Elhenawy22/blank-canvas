@@ -1,4 +1,5 @@
 "use client";
+import { localizedPath, type Locale } from "@/i18n/config";
 
 import { useEffect, useRef, useState } from "react";
 import { useGSAP } from "@gsap/react";
@@ -21,7 +22,7 @@ import { ensureGsap, gsap, prefersReducedMotion, EASE, ScrollTrigger } from "@/l
  * - Each card's inner image drifts slightly while travelling through the
  *   viewport (transform-only scrub).
  */
-export default function Work({ dictionary }: { dictionary: Dictionary }) {
+export default function Work({ dictionary, locale }: { dictionary: Dictionary; locale: Locale }) {
   const work = dictionary.work;
   const [activeCategory, setActiveCategory] = useState<CategoryId>("all");
   const sectionRef = useRef<HTMLElement>(null);
@@ -130,7 +131,7 @@ export default function Work({ dictionary }: { dictionary: Dictionary }) {
               className={`project-card ${project.className}`}
               key={project.slug}
             >
-              <a className="project-card__link" href={`/projects/${project.slug}`}>
+              <a className="project-card__link" href={localizedPath(locale, `/projects/${project.slug}`)}>
                 <div className="project-card__image">
                   <Image
                     alt={alt}

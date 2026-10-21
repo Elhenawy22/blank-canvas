@@ -7,7 +7,7 @@ import SmoothScroll from "@/components/smooth-scroll";
 import WhatsAppFab from "@/components/whatsapp-fab";
 import { getProject, projectPath, projects } from "@/data/portfolio";
 import type { Locale } from "@/i18n/config";
-import { localePath } from "@/i18n/config";
+import { localePath, localizedPath } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 
 export default function ProjectPage({
@@ -121,7 +121,7 @@ export default function ProjectPage({
           <p className="eyebrow">{pageCopy.nextProject}</p>
           <a
             className="project-next__link"
-            href={`${homeHref === "/" ? "" : homeHref}${projectPath(nextProject.slug)}`}
+            href={localizedPath(locale, projectPath(nextProject.slug))}
           >
             <span>{nextCopy.title}</span>
             <ArrowIcon />

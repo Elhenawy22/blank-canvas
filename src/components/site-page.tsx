@@ -36,7 +36,7 @@ export default function SitePage({ locale }: { locale: Locale }) {
         <Principles dictionary={dictionary} />
         <Showcase dictionary={dictionary} locale={locale} />
         <SalesResults dictionary={dictionary} locale={locale} />
-        <Work dictionary={dictionary} />
+        <Work dictionary={dictionary} locale={locale} />
         <Contact dictionary={dictionary} />
       </main>
       <SiteFooter dictionary={dictionary} locale={locale} />

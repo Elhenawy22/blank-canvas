@@ -22,16 +22,16 @@ export const localeLabels: Record<Locale, string> = {
 };
 
 /** Root path of a locale on this site. */
+// Hosting serves exact files only, so every page link points at its index.html.
 export function localePath(locale: Locale): string {
-  return `/${locale}`;
+  return `/${locale}/index.html`;
 }
 
 /** Locale-prefixed path. English stays unprefixed (`/about`, `/projects/x`). */
 export function localizedPath(locale: Locale, subpath = ""): string {
-  const base = localePath(locale);
-  if (!subpath) return base;
-  const path = subpath.startsWith("/") ? subpath : `/${subpath}`;
-  return base === "/" ? path : `${base}${path}`;
+  if (!subpath) return localePath(locale);
+  const path = (subpath.startsWith("/") ? subpath : `/${subpath}`).replace(/\/$/, "");
+  return `/${locale}${path}/index.html`;
 }
 
 /**
@@ -41,8 +41,7 @@ export function localizedPath(locale: Locale, subpath = ""): string {
 export function siteHref(locale: Locale, href: string, fromSubpage = false): string {
   if (href.startsWith("#")) {
     if (!fromSubpage) return href;
-    const home = localePath(locale);
-    return home === "/" ? `/${href}` : `${home}${href}`;
+    return `${localePath(locale)}${href}`;
   }
   return localizedPath(locale, href);
 }
