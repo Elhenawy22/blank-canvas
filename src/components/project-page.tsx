@@ -7,7 +7,7 @@ import SmoothScroll from "@/components/smooth-scroll";
 import WhatsAppFab from "@/components/whatsapp-fab";
 import { getProject, projectPath, projects } from "@/data/portfolio";
 import type { Locale } from "@/i18n/config";
-import { localePath } from "@/i18n/config";
+import { localePath, localizedPath } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 
 export default function ProjectPage({
