@@ -326,7 +326,7 @@ export default function AdminPanel() {
         {page === "services" && (
           <>
             <div className="head"><h1>خدماتنا</h1>{LangSwitch}</div>
-            <HeadingEditor sec="services" />
+            {HeadingEditor({ sec: "services" })}
             <div className="cards">
               {services.map((s, i) => {
                 const t = s.text[lang] ?? { title: "", description: "", tags: [] };
@@ -350,7 +350,7 @@ export default function AdminPanel() {
         {page === "results" && (
           <>
             <div className="head"><h1>نتائج العملاء</h1>{LangSwitch}</div>
-            <HeadingEditor sec="results" />
+            {HeadingEditor({ sec: "results" })}
             <div className="cards">
               {results.map((r, i) => {
                 const t = r.text[lang] ?? { title: "", subtitle: "", market: "", alt: "", summary: "" };
@@ -384,7 +384,7 @@ export default function AdminPanel() {
         {page === "work" && (
           <>
             <div className="head"><h1>أعمال مختارة</h1>{LangSwitch}</div>
-            <HeadingEditor sec="work" />
+            {HeadingEditor({ sec: "work" })}
             <h3>المشاريع الحالية</h3>
             <div className="cards">
               {works.map((w, i) => (
