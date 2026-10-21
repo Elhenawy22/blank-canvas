@@ -46,6 +46,7 @@ function toDataUrl(file: File, max = 1400): Promise<string> {
 }
 
 const css = `
+.btn.ghost{opacity:.55}
 .ad{position:fixed;inset:0;z-index:9999;display:flex;background:#f4f5f8;color:#1b1d2a;font-size:15px;overflow:hidden}
 .ad *{box-sizing:border-box}
 .ad aside{width:230px;background:#16162a;color:#fff;display:flex;flex-direction:column;padding:18px 12px;gap:4px;flex-shrink:0}
