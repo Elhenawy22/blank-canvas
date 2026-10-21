@@ -5,7 +5,8 @@ import { useGSAP } from "@gsap/react";
 import Image from "next/image";
 import RevealWords from "@/components/motion/reveal-words";
 import { setScrollLock } from "@/components/smooth-scroll";
-import { salesResults, type SalesResult } from "@/data/sales-results";
+import { salesResults as baseResults, type SalesResult } from "@/data/sales-results";
+import { deepMerge, useDict, useSettings } from "@/lib/site-settings";
 import type { Dictionary } from "@/i18n/dictionaries";
 import type { Locale } from "@/i18n/config";
 import { ensureGsap, gsap, prefersReducedMotion } from "@/lib/motion";
@@ -16,12 +17,15 @@ import { ensureGsap, gsap, prefersReducedMotion } from "@/lib/motion";
  * the full report image and the campaign details underneath.
  */
 export default function SalesResults({
-  dictionary,
+  dictionary: raw,
   locale,
 }: {
   dictionary: Dictionary;
   locale: Locale;
 }) {
+  const dictionary = useDict(raw);
+  const settings = useSettings();
+  const salesResults = deepMerge(baseResults, settings.results);
   const copy = dictionary.results;
   const headingId = useId();
   const dialogTitleId = useId();
