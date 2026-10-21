@@ -18,9 +18,23 @@ export type SiteSettings = {
   /** Text overrides per language and section, merged over the dictionaries. */
   content?: Record<string, Record<string, unknown>>;
   /** Overrides for built-in portfolio projects / sales results, by index. */
-  projects?: Record<string, unknown>[];
+  projects?: ProjectEdit[];
   results?: Record<string, unknown>[];
+  servicesList?: ServiceEdit[];
+  resultsList?: ResultEdit[];
 };
+
+type L = "ar" | "en";
+export type ServiceText = { title: string; description: string; tags?: string[] };
+export type ServiceEdit = { image: string; text: Partial<Record<L, ServiceText>> };
+export type CaseText = { title: string; subtitle: string; market: string; alt: string; summary: string };
+export type ResultEdit = {
+  id: string;
+  image: string;
+  metrics: { sales: string; salesDelta?: string; orders: string; ordersDelta?: string; conversion: string; conversionDelta?: string; aov?: string; period: string };
+  text: Partial<Record<L, CaseText>>;
+};
+export type ProjectEdit = { slug: string; image: string; categoryId: string; hidden: boolean; text?: Partial<Record<L, { title: string }>> };
 
 let cache: SiteSettings | null = null;
 let pending: Promise<SiteSettings> | null = null;
@@ -50,7 +64,7 @@ export function deepMerge<T>(base: T, over: unknown): T {
   if (over === undefined || over === null || over === "") return base;
   if (Array.isArray(base)) {
     const o = Array.isArray(over) ? over : Object.values(over as object);
-    return base.map((b, i) => deepMerge(b, o[i])) as T;
+    return o.map((v, i) => (i < base.length ? deepMerge(base[i], v) : v)) as T;
   }
   if (base && typeof base === "object") {
     const out: Record<string, unknown> = { ...(base as Record<string, unknown>) };
@@ -61,10 +75,15 @@ export function deepMerge<T>(base: T, over: unknown): T {
 }
 
 /** Dictionary with the admin's text edits for the current language applied. */
+export function useLoc(): L {
+  const [loc, setLoc] = useState<L>("ar");
+  useEffect(() => setLoc(window.location.pathname.startsWith("/en") ? "en" : "ar"), []);
+  return loc;
+}
+
 export function useDict<T>(dictionary: T): T {
   const s = useSettings();
-  const [loc, setLoc] = useState("ar");
-  useEffect(() => setLoc(window.location.pathname.startsWith("/en") ? "en" : "ar"), []);
+  const loc = useLoc();
   return useMemo(() => deepMerge(dictionary, s.content?.[loc]), [dictionary, s, loc]);
 }
 
