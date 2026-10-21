@@ -6,7 +6,7 @@ import Image from "next/image";
 import { ArrowIcon } from "@/components/icons";
 import RevealWords from "@/components/motion/reveal-words";
 import type { Dictionary } from "@/i18n/dictionaries";
-import { useDict } from "@/lib/site-settings";
+import { useDict, useSettings } from "@/lib/site-settings";
 import { ensureGsap, gsap, prefersReducedMotion, EASE } from "@/lib/motion";
 
 /**
@@ -15,7 +15,15 @@ import { ensureGsap, gsap, prefersReducedMotion, EASE } from "@/lib/motion";
  */
 export default function Services({ dictionary: raw }: { dictionary: Dictionary }) {
   const dictionary = useDict(raw);
-  const services = dictionary.services;
+  const settings = useSettings();
+  const loc = raw.services.eyebrow === dictionary.services.eyebrow && /[a-z]/i.test(raw.services.eyebrow) ? "en" : "ar";
+  const list = settings.servicesList;
+  const services = {
+    ...dictionary.services,
+    items: list
+      ? list.map((i) => ({ ...(i.text[loc] ?? i.text.ar ?? { title: "", description: "" }), image: i.image }))
+      : dictionary.services.items.map((i, n) => ({ ...i, image: serviceArtwork[n % serviceArtwork.length] })),
+  };
   const sectionRef = useRef<HTMLElement>(null);
 
   useGSAP(
@@ -62,9 +70,9 @@ export default function Services({ dictionary: raw }: { dictionary: Dictionary }
         {services.items.map((service, index) => (
           <a
             aria-label={`${service.title}${services.cardAriaSuffix}`}
-            className={`service-card ${styles[index]}`}
+            className={`service-card ${styles[index % styles.length]}`}
             href="#contact"
-            key={service.title}
+            key={index}
           >
             <Image
               alt=""
@@ -72,7 +80,7 @@ export default function Services({ dictionary: raw }: { dictionary: Dictionary }
               className="service-card__art"
               fill
               sizes="(max-width: 700px) 100vw, 50vw"
-              src={serviceArtwork[index]}
+              src={service.image}
             />
             <span aria-hidden="true" className="service-card__number">
               0{index + 1}
@@ -80,7 +88,7 @@ export default function Services({ dictionary: raw }: { dictionary: Dictionary }
             <span className="service-card__copy">
               <span className="service-card__title">{service.title}</span>
               <span className="service-card__description">{service.description}</span>
-              {service.tags ? (
+              {service.tags && service.tags.length ? (
                 <span className="service-card__tags">
                   {service.tags.map((tag) => (
                     <span key={tag}>{tag}</span>
@@ -108,7 +116,7 @@ const styles = [
   "service-card--content",
 ];
 
-const serviceArtwork = [
+export const serviceArtwork = [
   "/images/concept-color.svg",
   "/images/concept-desert.svg",
   "/images/concept-skin.svg",

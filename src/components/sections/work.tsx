@@ -27,7 +27,13 @@ import { ensureGsap, gsap, prefersReducedMotion, EASE, ScrollTrigger } from "@/l
 export default function Work({ dictionary: raw, locale }: { dictionary: Dictionary; locale: Locale }) {
   const dictionary = useDict(raw);
   const settings = useSettings();
-  const projects = deepMerge(baseProjects.map((p) => ({ ...p, hidden: false })), settings.projects).filter((p) => !p.hidden);
+  const edits = settings.projects;
+  const projects = baseProjects
+    .map((p) => {
+      const e = edits?.find((x) => x.slug === p.slug);
+      return e ? { ...p, image: e.image || p.image, categoryId: (e.categoryId || p.categoryId) as typeof p.categoryId, hidden: e.hidden, title: e.text?.[locale]?.title } : { ...p, hidden: false, title: undefined };
+    })
+    .filter((p) => !p.hidden);
   const work = dictionary.work;
   const [activeCategory, setActiveCategory] = useState<CategoryId>("all");
   const sectionRef = useRef<HTMLElement>(null);
@@ -38,7 +44,7 @@ export default function Work({ dictionary: raw, locale }: { dictionary: Dictiona
   }, []);
   const visibleExtra = activeCategory === "all" ? extra : extra.filter((p) => p.category === activeCategory);
 
-  const heading = (project: (typeof projects)[number]) => work.projects[project.slug];
+  const heading = (project: { slug: string }) => work.projects[project.slug];
 
   const visibleProjects =
     activeCategory === "all"
@@ -136,7 +142,8 @@ export default function Work({ dictionary: raw, locale }: { dictionary: Dictiona
 
       <div aria-label={work.gridAria} aria-live="polite" className="project-grid">
         {visibleProjects.map((project) => {
-          const { title, alt } = heading(project);
+          const { title: baseTitle, alt } = heading(project);
+          const title = project.title || baseTitle;
           return (
             <article
               className={`project-card ${project.className}`}

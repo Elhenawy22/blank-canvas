@@ -25,8 +25,11 @@ export default function SalesResults({
 }) {
   const dictionary = useDict(raw);
   const settings = useSettings();
-  const salesResults = deepMerge(baseResults, settings.results);
-  const copy = dictionary.results;
+  const list = settings.resultsList;
+  const salesResults = (list ? list.map((r) => ({ id: r.id, image: r.image, metrics: r.metrics })) : deepMerge(baseResults, settings.results)) as SalesResult[];
+  const copy = list
+    ? { ...dictionary.results, cases: { ...dictionary.results.cases, ...Object.fromEntries(list.map((r) => [r.id, r.text[locale] ?? r.text.ar])) } as typeof dictionary.results.cases }
+    : dictionary.results;
   const headingId = useId();
   const dialogTitleId = useId();
   const sectionRef = useRef<HTMLElement>(null);
