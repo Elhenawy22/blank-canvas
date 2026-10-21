@@ -10,6 +10,7 @@ import type { Dictionary } from "@/i18n/dictionaries";
 import type { Locale } from "@/i18n/config";
 import { attachStripDrag } from "@/lib/strip-drag";
 import { ensureGsap, gsap, prefersReducedMotion } from "@/lib/motion";
+import { useDict } from "@/lib/site-settings";
 
 /**
  * Services-and-outcomes gallery. A seamless, auto-moving ribbon that travels
@@ -18,12 +19,13 @@ import { ensureGsap, gsap, prefersReducedMotion } from "@/lib/motion";
  * dialog is open.
  */
 export default function Showcase({
-  dictionary,
+  dictionary: rawDict,
   locale,
 }: {
   dictionary: Dictionary;
   locale: Locale;
 }) {
+  const dictionary = useDict(rawDict);
   const copy = dictionary.showcase;
   const headingId = useId();
   const dialogTitleId = useId();

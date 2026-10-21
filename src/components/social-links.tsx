@@ -2,6 +2,7 @@
 import type { Dictionary } from "@/i18n/dictionaries";
 import { useBrand } from "@/lib/site-settings";
 import { socialIcons } from "./icons";
+import { useDict } from "@/lib/site-settings";
 
 /**
  * Config-driven social icon group (hero rail + footer).
@@ -12,12 +13,13 @@ import { socialIcons } from "./icons";
  * never a fake destination, never `#`.
  */
 export default function SocialLinks({
-  dictionary,
+  dictionary: rawDict,
   className = "social-links",
 }: {
   dictionary: Dictionary;
   className?: string;
 }) {
+  const dictionary = useDict(rawDict);
   const { socials } = useBrand();
   return (
     <ul aria-label={dictionary.hero.socialAria} className={className}>

@@ -9,6 +9,7 @@ import type { Dictionary } from "@/i18n/dictionaries";
 import { localeLabels, localePath, localizedPath, otherLocale, siteHref, type Locale } from "@/i18n/config";
 import { setScrollLock } from "./smooth-scroll";
 import { ensureGsap, gsap, hasFinePointer } from "@/lib/motion";
+import { useDict } from "@/lib/site-settings";
 
 /**
  * Fixed brand header.
@@ -24,7 +25,7 @@ import { ensureGsap, gsap, hasFinePointer } from "@/lib/motion";
  *   on close (Escape, link click, or the toggle).
  */
 export default function SiteHeader({
-  dictionary,
+  dictionary: rawDict,
   locale,
   subpath,
 }: {
@@ -32,6 +33,7 @@ export default function SiteHeader({
   locale: Locale;
   subpath?: string;
 }) {
+  const dictionary = useDict(rawDict);
   const nav = dictionary.nav;
   const lang = dictionary.language;
   const [menuOpen, setMenuOpen] = useState(false);
@@ -279,13 +281,14 @@ export default function SiteHeader({
  */
 function LanguageSwitch({
   current,
-  dictionary,
+  dictionary: rawDict,
   href,
 }: {
   current: Locale;
   dictionary: Dictionary;
   href: string;
 }) {
+  const dictionary = useDict(rawDict);
   const lang = dictionary.language;
   const target = otherLocale(current);
 

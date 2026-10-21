@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import type { Dictionary } from "@/i18n/dictionaries";
 import { ensureGsap, gsap, prefersReducedMotion } from "@/lib/motion";
+import { useDict } from "@/lib/site-settings";
 
 /**
  * Keyword marquee — one continuous, seamless loop. The word track is
@@ -11,12 +12,13 @@ import { ensureGsap, gsap, prefersReducedMotion } from "@/lib/motion";
  * -50% of its own width forever, giving an uninterrupted ribbon.
  */
 export default function MarqueeStrip({
-  dictionary,
+  dictionary: rawDict,
   locale,
 }: {
   dictionary: Dictionary;
   locale: string;
 }) {
+  const dictionary = useDict(rawDict);
   const marquee = dictionary.marquee;
   const viewportRef = useRef<HTMLDivElement>(null);
 
