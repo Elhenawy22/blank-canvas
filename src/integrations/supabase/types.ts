@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      cms_projects: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          image: string
+          link: string | null
+          sort: number
+          title: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image: string
+          link?: string | null
+          sort?: number
+          title: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image?: string
+          link?: string | null
+          sort?: number
+          title?: string
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           company: string | null
@@ -44,6 +77,24 @@ export type Database = {
           phone?: string
           service?: string
           status?: string
+        }
+        Relationships: []
+      }
+      site_settings: {
+        Row: {
+          data: Json
+          id: number
+          updated_at: string
+        }
+        Insert: {
+          data?: Json
+          id?: number
+          updated_at?: string
+        }
+        Update: {
+          data?: Json
+          id?: number
+          updated_at?: string
         }
         Relationships: []
       }

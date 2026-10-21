@@ -7,6 +7,7 @@ import Image from "next/image";
 import RevealWords from "@/components/motion/reveal-words";
 import { categoryOrder, projects, type CategoryId } from "@/data/portfolio";
 import type { Dictionary } from "@/i18n/dictionaries";
+import { db } from "@/lib/db";
 import { ensureGsap, gsap, prefersReducedMotion, EASE, ScrollTrigger } from "@/lib/motion";
 
 /**
@@ -26,6 +27,12 @@ export default function Work({ dictionary, locale }: { dictionary: Dictionary; l
   const work = dictionary.work;
   const [activeCategory, setActiveCategory] = useState<CategoryId>("all");
   const sectionRef = useRef<HTMLElement>(null);
+  const [extra, setExtra] = useState<{ id: string; title: string; category: string; image: string; link: string | null }[]>([]);
+  useEffect(() => {
+    db.from("cms_projects").select("id,title,category,image,link").order("sort").order("created_at", { ascending: false })
+      .then(({ data }) => setExtra(data ?? []));
+  }, []);
+  const visibleExtra = activeCategory === "all" ? extra : extra.filter((p) => p.category === activeCategory);
 
   const heading = (project: (typeof projects)[number]) => work.projects[project.slug];
 
@@ -81,7 +88,7 @@ export default function Work({ dictionary, locale }: { dictionary: Dictionary; l
         }
       });
     },
-    { scope: sectionRef, dependencies: [activeCategory], revertOnUpdate: true },
+    { scope: sectionRef, dependencies: [activeCategory, extra.length], revertOnUpdate: true },
   );
 
   // Filtering changes the document height, so every trigger below the grid
@@ -152,7 +159,22 @@ export default function Work({ dictionary, locale }: { dictionary: Dictionary; l
             </article>
           );
         })}
-        {visibleProjects.length === 0 && (
+        {visibleExtra.map((p) => (
+          <article className="project-card" key={p.id}>
+            <a className="project-card__link" href={p.link || p.image} target="_blank" rel="noreferrer">
+              <div className="project-card__image">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img alt={p.title} src={p.image} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+                <span className="project-card__open" aria-hidden="true">↗</span>
+              </div>
+              <div className="project-card__info">
+                <h3>{p.title}</h3>
+                <p>{work.categories[p.category as Exclude<CategoryId, "all">] ?? p.category}</p>
+              </div>
+            </a>
+          </article>
+        ))}
+        {visibleProjects.length + visibleExtra.length === 0 && (
           <p className="project-empty">{work.empty}</p>
         )}
       </div>
