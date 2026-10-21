@@ -9,6 +9,7 @@ import { salesResults as baseResults, type SalesResult } from "@/data/sales-resu
 import { deepMerge, useDict, useSettings } from "@/lib/site-settings";
 import type { Dictionary } from "@/i18n/dictionaries";
 import type { Locale } from "@/i18n/config";
+import { attachStripDrag } from "@/lib/strip-drag";
 import { ensureGsap, gsap, prefersReducedMotion } from "@/lib/motion";
 
 /**
@@ -49,13 +50,16 @@ export default function SalesResults({
 
       ensureGsap();
 
-      const tween = gsap.to(viewport.querySelector(".results-strip__track"), {
+      const track = viewport.querySelector<HTMLElement>(".results-strip__track");
+      if (!track) return;
+      const tween = gsap.to(track, {
         xPercent: locale === "ar" ? 50 : -50,
         duration: 48,
         ease: "none",
         repeat: -1,
       });
       tweenRef.current = tween;
+      const detachDrag = attachStripDrag(viewport, track, tween, locale === "ar" ? 1 : -1);
 
       const pause = () => tween.pause();
       const play = () => {
@@ -72,6 +76,7 @@ export default function SalesResults({
         viewport.removeEventListener("pointerleave", play);
         viewport.removeEventListener("focusin", pause);
         viewport.removeEventListener("focusout", play);
+        detachDrag();
         tweenRef.current = null;
       };
     },

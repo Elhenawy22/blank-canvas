@@ -8,6 +8,7 @@ import { setScrollLock } from "@/components/smooth-scroll";
 import { showcaseItems, type ShowcaseId } from "@/data/showcase";
 import type { Dictionary } from "@/i18n/dictionaries";
 import type { Locale } from "@/i18n/config";
+import { attachStripDrag } from "@/lib/strip-drag";
 import { ensureGsap, gsap, prefersReducedMotion } from "@/lib/motion";
 
 /**
@@ -43,7 +44,7 @@ export default function Showcase({
 
       ensureGsap();
 
-      const track = viewport.querySelector(".showcase-strip__track");
+      const track = viewport.querySelector<HTMLElement>(".showcase-strip__track");
       if (!track) return;
 
       // The results strip travels toward the start edge of the reading
@@ -61,6 +62,7 @@ export default function Showcase({
         },
       );
       tweenRef.current = tween;
+      const detachDrag = attachStripDrag(viewport, track, tween, locale === "ar" ? -1 : 1);
 
       let snappedForFocus = false;
 
@@ -104,6 +106,7 @@ export default function Showcase({
         viewport.removeEventListener("pointerleave", play);
         viewport.removeEventListener("focusin", handleFocusIn);
         viewport.removeEventListener("focusout", handleFocusOut);
+        detachDrag();
         tweenRef.current = null;
       };
     },
