@@ -17,50 +17,14 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   distDir: "dist",
+  output: "export",
+  trailingSlash: true,
+  images: { unoptimized: true },
   // The root layout lives under the [lang] dynamic segment, so the
   // documented global-not-found file convention is enabled to serve
   // unmatched URLs (see src/app/global-not-found.tsx).
   experimental: {
     globalNotFound: true,
-  },
-  async redirects() {
-    return [
-      {
-        source: "/ar/projects/:slug",
-        destination: "/projects/:slug",
-        permanent: true,
-      },
-      {
-        source: "/ar/about",
-        destination: "/about",
-        permanent: true,
-      },
-      {
-        source: "/ar",
-        destination: "/",
-        permanent: true,
-      },
-    ];
-  },
-  async rewrites() {
-    return {
-      beforeFiles: [
-        {
-          source: "/projects/:slug",
-          destination: "/ar/projects/:slug",
-        },
-        {
-          source: "/about",
-          destination: "/ar/about",
-        },
-        {
-          source: "/",
-          destination: "/ar",
-        },
-      ],
-      afterFiles: [],
-      fallback: [],
-    };
   },
 };
 
