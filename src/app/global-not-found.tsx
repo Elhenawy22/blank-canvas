@@ -44,10 +44,10 @@ export default function GlobalNotFound() {
               {ar.notFound.title} — {ar.notFound.body}
             </p>
             <div className="nf__links">
-              <a className="nf__link" href="/">
+              <a className="nf__link" href="/index.html">
                 {en.notFound.home}
               </a>
-              <a className="nf__link" href="/ar" lang="ar">
+              <a className="nf__link" href="/ar/index.html" lang="ar">
                 {ar.notFound.home}
               </a>
             </div>
