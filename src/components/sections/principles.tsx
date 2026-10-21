@@ -1,11 +1,15 @@
+"use client";
+
 import RevealArea from "@/components/motion/reveal-area";
 import type { Dictionary } from "@/i18n/dictionaries";
+import { useDict } from "@/lib/site-settings";
 
 /**
  * Vision & mission — two editorial rows with symbolic medallions.
  * Entrance is handled by the shared data-reveal system.
  */
-export default function Principles({ dictionary }: { dictionary: Dictionary }) {
+export default function Principles({ dictionary: rawDict }: { dictionary: Dictionary }) {
+  const dictionary = useDict(rawDict);
   const principles = dictionary.principles;
 
   return (

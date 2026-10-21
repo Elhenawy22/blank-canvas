@@ -7,6 +7,7 @@ import type { Dictionary } from "@/i18n/dictionaries";
 import { useBrand } from "@/lib/site-settings";
 import { db } from "@/lib/db";
 import { ensureGsap, gsap, prefersReducedMotion, EASE } from "@/lib/motion";
+import { useDict } from "@/lib/site-settings";
 
 /**
  * Contact — closing conversion section.
@@ -16,7 +17,8 @@ import { ensureGsap, gsap, prefersReducedMotion, EASE } from "@/lib/motion";
  * guidance note; once it is set, submitting opens the visitor's mail
  * application with prefilled subject/body. Nothing is sent to a server.
  */
-export default function Contact({ dictionary }: { dictionary: Dictionary }) {
+export default function Contact({ dictionary: rawDict }: { dictionary: Dictionary }) {
+  const dictionary = useDict(rawDict);
   const brand = useBrand();
   const contact = dictionary.contact;
   const [formMessage, setFormMessage] = useState("");

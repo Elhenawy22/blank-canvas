@@ -7,6 +7,7 @@ import type { Locale } from "@/i18n/config";
 import { localeLabels, localePath, localizedPath, siteHref } from "@/i18n/config";
 import { useBrand } from "@/lib/site-settings";
 import { WhatsAppIcon } from "./icons";
+import { useDict } from "@/lib/site-settings";
 
 /**
  * Footer — deliberate four-column hierarchy over the giant outlined
@@ -18,7 +19,7 @@ import { WhatsAppIcon } from "./icons";
  * Bottom bar: copyright + the developer credit.
  */
 export default function SiteFooter({
-  dictionary,
+  dictionary: rawDict,
   locale,
   subpath,
 }: {
@@ -26,6 +27,7 @@ export default function SiteFooter({
   locale: Locale;
   subpath?: string;
 }) {
+  const dictionary = useDict(rawDict);
   const footer = dictionary.footer;
   const brand = useBrand();
   const contact = dictionary.contact;

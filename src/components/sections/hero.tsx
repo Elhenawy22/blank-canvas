@@ -14,6 +14,7 @@ import {
   EASE,
   SplitText,
 } from "@/lib/motion";
+import { useDict } from "@/lib/site-settings";
 
 /**
  * The hero pairs its localized copy with a lightweight CSS 3D scene. Scroll
@@ -27,12 +28,13 @@ function heroScrollDistance(): number {
 }
 
 export default function Hero({
-  dictionary,
+  dictionary: rawDict,
   locale,
 }: {
   dictionary: Dictionary;
   locale: string;
 }) {
+  const dictionary = useDict(rawDict);
   const heroRef = useRef<HTMLElement>(null);
   const isArabic = locale === "ar";
 

@@ -7,6 +7,7 @@ import type { Dictionary } from "@/i18n/dictionaries";
 import type { Locale } from "@/i18n/config";
 import { localizedPath } from "@/i18n/config";
 import { ensureGsap, gsap, prefersReducedMotion, EASE } from "@/lib/motion";
+import { useDict } from "@/lib/site-settings";
 
 /**
  * About / milestones — a dark statement board. The composition pins
@@ -14,12 +15,13 @@ import { ensureGsap, gsap, prefersReducedMotion, EASE } from "@/lib/motion";
  * reduced motion the section is a normal dark block (no pinning).
  */
 export default function Milestones({
-  dictionary,
+  dictionary: rawDict,
   locale,
 }: {
   dictionary: Dictionary;
   locale: Locale;
 }) {
+  const dictionary = useDict(rawDict);
   const milestones = dictionary.milestones;
   const sectionRef = useRef<HTMLElement>(null);
 
