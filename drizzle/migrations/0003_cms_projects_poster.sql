@@ -1,0 +1,1 @@
+alter table public.cms_projects add column if not exists poster text;
