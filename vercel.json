@@ -1,0 +1,14 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "npm install",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "trailingSlash": true,
+  "redirects": [
+    { "source": "/", "destination": "/ar/", "permanent": false },
+    { "source": "/about", "destination": "/ar/about/", "permanent": false },
+    { "source": "/admin", "destination": "/ar/admin/", "permanent": false },
+    { "source": "/projects/:slug", "destination": "/ar/projects/:slug/", "permanent": false }
+  ]
+}
