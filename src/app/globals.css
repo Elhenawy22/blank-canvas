@@ -1425,15 +1425,7 @@ html[dir="rtl"] .hero__scene {
 
 /* The AI card stays deliberately compact; the content card below it runs
    full width and carries the photos / reels / UGC capability chips. */
-.service-card--ai {
-  grid-column: span 5;
-  min-height: 13rem;
-}
 
-.service-card--content {
-  grid-column: 1 / -1;
-  min-height: 15rem;
-}
 
 .service-card--content .service-card__copy {
   max-width: 48rem;
@@ -3613,13 +3605,7 @@ html[lang="ar"] .contact-form input[type="email"] {
     padding: 1.35rem;
   }
 
-  .service-card--ai {
-    min-height: 12rem;
-  }
 
-  .service-card--content {
-    min-height: 16rem;
-  }
 
   .service-card__number {
     top: 1.3rem;

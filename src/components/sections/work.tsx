@@ -40,7 +40,7 @@ export default function Work({ dictionary: raw, locale }: { dictionary: Dictiona
   const [extra, setExtra] = useState<{ id: string; title: string; category: string; image: string; link: string | null }[]>([]);
   useEffect(() => {
     db.from("cms_projects").select("id,title,category,image,link").order("sort").order("created_at", { ascending: false })
-      .then(({ data }) => setExtra(data ?? []));
+      .then(({ data }) => setExtra((data ?? []).filter((p) => !p.category.startsWith("service-"))));
   }, []);
   const visibleExtra = activeCategory === "all" ? extra : extra.filter((p) => p.category === activeCategory);
 

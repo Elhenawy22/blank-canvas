@@ -13,7 +13,7 @@ import { serviceArtwork } from "@/components/sections/services";
 type Order = { id: string; name: string; phone: string; company: string | null; service: string; message: string; status: string; created_at: string };
 type Proj = { id: string; title: string; category: string; image: string; link: string | null; sort: number };
 type Lang = "ar" | "en";
-type Page = "orders" | "settings" | "services" | "results" | "work";
+type Page = "orders" | "settings" | "services" | "results" | "work" | "spages";
 
 const STATUS: Record<string, string> = { new: "جديد", contacted: "تم التواصل", done: "مكتمل" };
 const CATS: Record<string, string> = { branding: "هوية بصرية", social: "سوشيال ميديا", dev: "برمجة وتصميم", photo: "تصوير", video: "فيديو" };
@@ -23,6 +23,7 @@ const NAV: [Page, string, string][] = [
   ["services", "خدماتنا", "🧩"],
   ["results", "نتائج العملاء", "📈"],
   ["work", "أعمال مختارة", "🖼️"],
+  ["spages", "صفحات الخدمات", "🗂️"],
 ];
 
 /** Shrinks a picture from the computer to a compact JPEG so it can be stored directly. */
@@ -186,6 +187,9 @@ export default function AdminPanel() {
     const { error } = await db.auth.signInWithPassword({ email: String(f.get("email")), password: String(f.get("password")) });
     if (error) setMsg("بيانات الدخول غير صحيحة.");
   }
+
+  const svcTitles = (st.servicesList?.map((x) => x.text.ar?.title ?? "") ?? dict("ar").services.items.map((x) => x.title));
+  const svcName = (c: string) => (c.startsWith("service-") ? "خدمة: " + (svcTitles[Number(c.slice(8)) - 1] ?? c) : c);
 
   async function addProject(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -409,11 +413,36 @@ export default function AdminPanel() {
               <button className="btn" disabled={busy} type="submit">➕ إضافة المشروع</button>
             </form>
             <div className="cards">
-              {projects.map((p) => (
+              {projects.filter((p) => !p.category.startsWith("service-")).map((p) => (
                 <div key={p.id} className="item">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <div className="thumb"><img src={p.image} alt={p.title} /></div>
-                  <p style={{ margin: "0 0 10px" }}><strong>{p.title}</strong> · <small>{CATS[p.category] ?? p.category}</small></p>
+                  <p style={{ margin: "0 0 10px" }}><strong>{p.title}</strong> · <small>{CATS[p.category] ?? svcName(p.category)}</small></p>
+                  <button className="btn red" onClick={() => removeProject(p.id)}>حذف</button>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+        {page === "spages" && (
+          <>
+            <h3>صفحات الخدمات</h3>
+            <p><small>كل خدمة ليها صفحة منفصلة. ارفع صور ومشاريع لأي خدمة وهتظهر في صفحتها.</small></p>
+            <form onSubmit={addProject} className="panel">
+              <div className="grid2">
+                <label>الخدمة<select name="category">{svcTitles.map((t, i) => <option key={i} value={`service-${i + 1}`}>{i + 1}. {t}</option>)}</select></label>
+                <label>اسم المشروع / الصورة<input name="title" required /></label>
+                <label>الصورة من جهازك<input name="file" type="file" accept="image/*" required /></label>
+                <label>رابط (اختياري)<input name="link" type="url" dir="ltr" placeholder="https://" /></label>
+              </div>
+              <button className="btn" disabled={busy} type="submit">➕ إضافة</button>
+            </form>
+            <div className="cards">
+              {projects.filter((p) => p.category.startsWith("service-")).map((p) => (
+                <div key={p.id} className="item">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <div className="thumb"><img src={p.image} alt={p.title} /></div>
+                  <p style={{ margin: "0 0 10px" }}><strong>{p.title}</strong> · <small>{svcName(p.category)}</small></p>
                   <button className="btn red" onClick={() => removeProject(p.id)}>حذف</button>
                 </div>
               ))}
