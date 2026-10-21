@@ -4,6 +4,7 @@ import { localizedPath, type Locale } from "@/i18n/config";
 import { useEffect, useRef, useState } from "react";
 import { useGSAP } from "@gsap/react";
 import Image from "next/image";
+import Media, { isVideo } from "@/components/media";
 import RevealWords from "@/components/motion/reveal-words";
 import { categoryOrder, projects as baseProjects, type CategoryId } from "@/data/portfolio";
 import { deepMerge, useDict, useSettings } from "@/lib/site-settings";
@@ -151,12 +152,9 @@ export default function Work({ dictionary: raw, locale }: { dictionary: Dictiona
             >
               <a className="project-card__link" href={localizedPath(locale, `/projects/${project.slug}`)}>
                 <div className="project-card__image">
-                  <Image
-                    alt={alt}
-                    fill
-                    sizes="(max-width: 700px) 100vw, (max-width: 1100px) 50vw, 45vw"
-                    src={project.image}
-                  />
+                  {isVideo(project.image) ? <Media alt={alt} src={project.image} /> : (
+                  <Image alt={alt} fill sizes="(max-width: 700px) 100vw, (max-width: 1100px) 50vw, 45vw" src={project.image} />
+                  )}
                   <span className="project-card__open" aria-hidden="true">↗</span>
                 </div>
                 <div className="project-card__info">
@@ -175,7 +173,7 @@ export default function Work({ dictionary: raw, locale }: { dictionary: Dictiona
             <a className="project-card__link" href={p.link || p.image} target="_blank" rel="noreferrer">
               <div className="project-card__image">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img alt={p.title} src={p.image} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+                <Media alt={p.title} src={p.image} />
                 <span className="project-card__open" aria-hidden="true">↗</span>
               </div>
               <div className="project-card__info">

@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import Image from "next/image";
+import Media, { isVideo } from "@/components/media";
 import { ArrowIcon } from "@/components/icons";
 import RevealWords from "@/components/motion/reveal-words";
 import type { Dictionary } from "@/i18n/dictionaries";
@@ -75,14 +76,11 @@ export default function Services({ dictionary: raw }: { dictionary: Dictionary }
             href={localizedPath(loc, `/services/${index + 1}`)}
             key={index}
           >
-            <Image
-              alt=""
-              aria-hidden="true"
-              className="service-card__art"
-              fill
-              sizes="(max-width: 700px) 100vw, 50vw"
-              src={service.image}
-            />
+            {isVideo(service.image) ? (
+              <Media className="service-card__art" src={service.image} />
+            ) : (
+              <Image alt="" aria-hidden="true" className="service-card__art" fill sizes="(max-width: 700px) 100vw, 50vw" src={service.image} />
+            )}
             <span aria-hidden="true" className="service-card__number">
               0{index + 1}
             </span>

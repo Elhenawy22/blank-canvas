@@ -15,6 +15,13 @@
       "when": 1792541686325,
       "tag": "0001_site_cms",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792560466750,
+      "tag": "0002_media_bucket_policies",
+      "breakpoints": true
     }
   ]
 }
