@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import SiteFooter from "@/components/footer";
 import SiteHeader from "@/components/header";
 import WhatsAppFab from "@/components/whatsapp-fab";
+import Media from "@/components/media";
 import { ArrowIcon } from "@/components/icons";
 import { serviceArtwork } from "@/components/sections/services";
 import { localePath, type Locale } from "@/i18n/config";
@@ -46,7 +47,7 @@ export default function ServicePage({ locale, n }: { locale: Locale; n: number }
           {s?.image ? (
             <figure className="project-hero__visual">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img alt="" src={s.image} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+              <Media src={s.image} />
             </figure>
           ) : null}
         </section>
@@ -57,7 +58,7 @@ export default function ServicePage({ locale, n }: { locale: Locale; n: number }
                 <a className="project-card__link" href={p.link || p.image} target="_blank" rel="noreferrer">
                   <div className="project-card__image">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img alt={p.title} src={p.image} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+                    <Media alt={p.title} src={p.image} />
                   </div>
                   <div className="project-card__info"><h3>{p.title}</h3></div>
                 </a>

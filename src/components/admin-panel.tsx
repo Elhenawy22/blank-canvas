@@ -1,4 +1,5 @@
 "use client";
+import Media from "@/components/media";
 
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import type { Session } from "@supabase/supabase-js";
@@ -67,8 +68,6 @@ function toDataUrl(file: File, max = 1200): Promise<string> {
     img.src = URL.createObjectURL(file);
   });
 }
-
-import Media from "@/components/media";
 
 const css = `
 .btn.ghost{opacity:.55}
