@@ -21,8 +21,10 @@ const base: NextConfig = {
 
 export default function config(phase: string): NextConfig {
   if (phase !== PHASE_DEVELOPMENT_SERVER) return base;
+  // Export mode validates rewritten params, so dev runs as a normal server.
+  const { output: _output, ...dev } = base;
   return {
-    ...base,
+    ...dev,
     async rewrites() {
       return [
         { source: "/", destination: "/ar/" },
