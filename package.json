@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
-    "build:dev": "next build",
+    "build": "next build && node scripts/root-redirect.mjs",
+    "build:dev": "next build && node scripts/root-redirect.mjs",
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "validate": "node scripts/run-validation.mjs",

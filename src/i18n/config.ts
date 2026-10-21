@@ -23,7 +23,7 @@ export const localeLabels: Record<Locale, string> = {
 
 /** Root path of a locale on this site. */
 export function localePath(locale: Locale): string {
-  return locale === defaultLocale ? "/" : `/${locale}`;
+  return `/${locale}`;
 }
 
 /** Locale-prefixed path. English stays unprefixed (`/about`, `/projects/x`). */

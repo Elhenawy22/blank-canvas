@@ -1,3 +1,4 @@
+export const dynamic = "force-static";
 import type { MetadataRoute } from "next";
 import { localePath, locales } from "@/i18n/config";
 import { projectPath, projects } from "@/data/portfolio";
