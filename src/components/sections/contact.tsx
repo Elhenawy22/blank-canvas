@@ -5,6 +5,7 @@ import { useGSAP } from "@gsap/react";
 import { ArrowIcon, WhatsAppIcon } from "@/components/icons";
 import type { Dictionary } from "@/i18n/dictionaries";
 import { brand } from "@/data/brand";
+import { db } from "@/lib/db";
 import { ensureGsap, gsap, prefersReducedMotion, EASE } from "@/lib/motion";
 
 /**
@@ -86,6 +87,13 @@ export default function Contact({ dictionary }: { dictionary: Dictionary }) {
       .join("\n");
     const number = brand.whatsappHref.replace(/\D/g, "");
     window.open(`https://wa.me/${number}?text=${encodeURIComponent(text)}`, "_blank", "noopener");
+    void db.from("orders").insert({
+      name: v("name"),
+      phone: v("phone"),
+      company: v("company") || null,
+      service: v("service"),
+      message: v("message"),
+    });
     setFormMessage(t.sent);
     event.currentTarget.reset();
   }

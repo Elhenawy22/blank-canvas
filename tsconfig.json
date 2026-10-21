@@ -39,7 +39,7 @@
     "dist/types/**/*.ts",
     "dist/dev/types/**/*.ts"
   ],
-  "exclude": [
+  "exclude": ["supabase", "src/integrations", 
     "node_modules",
     "backup"
   ]
