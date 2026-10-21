@@ -27,6 +27,23 @@ const NAV: [Page, string, string][] = [
   ["texts", "كل نصوص الموقع", "✏️"],
 ];
 
+/** Uploads a video to storage and returns a long-lived address. */
+async function uploadVideo(file: File): Promise<string> {
+  if (file.size > 50 * 1024 * 1024) throw new Error("الفيديو أكبر من 50 ميجا");
+  const ext = (file.name.split(".").pop() || "mp4").toLowerCase();
+  const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+  const up = await db.storage.from("media").upload(path, file, { contentType: file.type || "video/mp4" });
+  if (up.error) throw up.error;
+  const { data, error } = await db.storage.from("media").createSignedUrl(path, 60 * 60 * 24 * 365 * 20);
+  if (error || !data) throw error ?? new Error("upload");
+  return data.signedUrl;
+}
+
+/** Picture → compact data URL; video → uploaded file address. */
+function toMedia(file: File): Promise<string> {
+  return file.type.startsWith("video/") ? uploadVideo(file) : toDataUrl(file);
+}
+
 /** Shrinks a picture from the computer to a compact JPEG so it can be stored directly. */
 function toDataUrl(file: File, max = 1200): Promise<string> {
   return new Promise((res, rej) => {
