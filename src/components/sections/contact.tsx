@@ -4,7 +4,7 @@ import { useRef, useState, type FormEvent } from "react";
 import { useGSAP } from "@gsap/react";
 import { ArrowIcon, WhatsAppIcon } from "@/components/icons";
 import type { Dictionary } from "@/i18n/dictionaries";
-import { brand } from "@/data/brand";
+import { useBrand } from "@/lib/site-settings";
 import { db } from "@/lib/db";
 import { ensureGsap, gsap, prefersReducedMotion, EASE } from "@/lib/motion";
 
@@ -17,6 +17,7 @@ import { ensureGsap, gsap, prefersReducedMotion, EASE } from "@/lib/motion";
  * application with prefilled subject/body. Nothing is sent to a server.
  */
 export default function Contact({ dictionary }: { dictionary: Dictionary }) {
+  const brand = useBrand();
   const contact = dictionary.contact;
   const [formMessage, setFormMessage] = useState("");
   const sectionRef = useRef<HTMLElement>(null);
@@ -113,7 +114,7 @@ export default function Contact({ dictionary }: { dictionary: Dictionary }) {
         <div className="contact__details">
           <p className="contact__address">
             <span>{contact.addressLabel}</span>
-            {contact.address}
+            {brand.address || contact.address}
           </p>
           <a
             className="button button--whatsapp"

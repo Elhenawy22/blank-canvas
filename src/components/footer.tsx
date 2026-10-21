@@ -1,10 +1,11 @@
+"use client";
 import { BrandLogo } from "./brand-logo";
 import SocialLinks from "./social-links";
 import LocaleLink from "./locale-link";
 import type { Dictionary } from "@/i18n/dictionaries";
 import type { Locale } from "@/i18n/config";
 import { localeLabels, localePath, localizedPath, siteHref } from "@/i18n/config";
-import { brand } from "@/data/brand";
+import { useBrand } from "@/lib/site-settings";
 import { WhatsAppIcon } from "./icons";
 
 /**
@@ -26,6 +27,7 @@ export default function SiteFooter({
   subpath?: string;
 }) {
   const footer = dictionary.footer;
+  const brand = useBrand();
   const contact = dictionary.contact;
   const year = new Date().getFullYear();
   const homePath = localePath(locale);
@@ -75,7 +77,7 @@ export default function SiteFooter({
           <h2 className="site-footer__title">{footer.contactHeading}</h2>
           <p className="site-footer__address">
             <span>{contact.addressLabel}</span>
-            {contact.address}
+            {brand.address || contact.address}
           </p>
           <a
             className="site-footer__whatsapp"

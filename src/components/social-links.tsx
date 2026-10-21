@@ -1,5 +1,6 @@
+"use client";
 import type { Dictionary } from "@/i18n/dictionaries";
-import { socials } from "@/data/brand";
+import { useBrand } from "@/lib/site-settings";
 import { socialIcons } from "./icons";
 
 /**
@@ -17,6 +18,7 @@ export default function SocialLinks({
   dictionary: Dictionary;
   className?: string;
 }) {
+  const { socials } = useBrand();
   return (
     <ul aria-label={dictionary.hero.socialAria} className={className}>
       {socials.map((social) => {
