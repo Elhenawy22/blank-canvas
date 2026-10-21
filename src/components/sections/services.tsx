@@ -6,13 +6,15 @@ import Image from "next/image";
 import { ArrowIcon } from "@/components/icons";
 import RevealWords from "@/components/motion/reveal-words";
 import type { Dictionary } from "@/i18n/dictionaries";
+import { useDict } from "@/lib/site-settings";
 import { ensureGsap, gsap, prefersReducedMotion, EASE } from "@/lib/motion";
 
 /**
  * Services — four art-directed cards that rise into 3D view on scroll.
  * Hover floats the gradient layer; the arrow signal is hover-only.
  */
-export default function Services({ dictionary }: { dictionary: Dictionary }) {
+export default function Services({ dictionary: raw }: { dictionary: Dictionary }) {
+  const dictionary = useDict(raw);
   const services = dictionary.services;
   const sectionRef = useRef<HTMLElement>(null);
 
